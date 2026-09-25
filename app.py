@@ -48,11 +48,12 @@ CSS = """
     margin-bottom:24px;
 }
 .big-question {
-    font-size: 2.1rem;
-    font-weight: 700;
+    font-size: 3.6rem;
+    font-weight: 800;
     text-align: center;
-    margin: 18px 0 22px 0;
-    color: #1c1c1c;
+    margin: 22px 0 28px 0;
+    color: #1c1c1c !important;
+    line-height: 1.2;
 }
 div.stButton > button {
     border-radius: 10px;
@@ -98,8 +99,9 @@ def stopwatch_component(start_time: float, key: str):
     start_ms = int(start_time * 1000)
     components.html(
         f"""
-        <div id="sw-{key}" style="font-size:1.4rem;font-weight:700;text-align:center;
-             color:#1c1c1c;font-family:monospace;margin-bottom:6px;">00:00.0</div>
+        <style>html,body{{background:#ffffff;margin:0;}}</style>
+        <div id="sw-{key}" style="font-size:1.6rem;font-weight:700;text-align:center;
+             color:#1c1c1c;font-family:monospace;margin-bottom:6px;background:#ffffff;">00:00.0</div>
         <script>
         const start = {start_ms};
         const el = document.getElementById("sw-{key}");
@@ -123,6 +125,7 @@ def fading_scaffold(scaffold_html: str, seconds_remaining: float, key: str):
     """Render scaffold HTML that hides itself client-side after `seconds_remaining`."""
     components.html(
         f"""
+        <style>html,body{{background:#ffffff;margin:0;}}</style>
         <div id="scaf-{key}">{scaffold_html}</div>
         <div id="faded-{key}" style="display:none;color:#888;font-style:italic;
              text-align:center;padding:10px;">Scaffold hidden — try it from memory now.</div>

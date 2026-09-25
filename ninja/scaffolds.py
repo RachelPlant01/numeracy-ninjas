@@ -17,8 +17,9 @@ CARD_STYLE = (
 
 
 def _wrap(inner: str, note: str | None = None) -> str:
-    note_html = f'<div style="margin-top:10px;color:#555;font-size:0.92rem;">{note}</div>' if note else ""
-    return f'<div style="{CARD_STYLE}">{inner}{note_html}</div>'
+    # `note` (a plain-English caption) is intentionally not rendered — the
+    # scaffold should be the picture alone, not a worded explanation of it.
+    return f'<div style="{CARD_STYLE}">{inner}</div>'
 
 
 # ---------------------------------------------------------------- number line
