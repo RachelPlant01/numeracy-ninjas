@@ -107,20 +107,22 @@ def go(stage: str):
     st.session_state.stage = stage
 
 
-def generate_question_sequence(gen_fn, n: int, max_attempts: int = 20) -> list:
-    """Generate `n` questions, re-rolling a question if it would repeat the
-    prompt immediately before it (so pupils don't see the same question
-    twice in a row)."""
+def generate_question_sequence(gen_fn, n: int, max_attempts: int = 50) -> list:
+    """Generate `n` questions, re-rolling a question if its prompt has
+    already appeared earlier in this session — so every distinct question a
+    skill can produce gets shown before any of them repeat. Some skills only
+    have a handful of possible prompts, so once those are exhausted a
+    repeat becomes unavoidable and is allowed rather than looping forever."""
     questions = []
-    prev_prompt = None
+    seen_prompts: set[str] = set()
     for _ in range(n):
         q = gen_fn()
         for _ in range(max_attempts):
-            if q.prompt != prev_prompt:
+            if q.prompt not in seen_prompts:
                 break
             q = gen_fn()
         questions.append(q)
-        prev_prompt = q.prompt
+        seen_prompts.add(q.prompt)
     return questions
 
 
