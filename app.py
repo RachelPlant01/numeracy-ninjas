@@ -1,4 +1,4 @@
-"""Numeracy Ninjas — scaffolded practice app.
+"""BGE Numeracy — scaffolded practice app.
 
 Landing page → choose Key Skills or Mental Strategies → choose a skill →
 set scaffold-fade options → answer questions one at a time, timed.
@@ -27,7 +27,7 @@ CATEGORIES = {
     },
 }
 
-st.set_page_config(page_title="Numeracy Ninjas", page_icon="🥷", layout="centered")
+st.set_page_config(page_title="BGE Numeracy", page_icon="🧮", layout="centered")
 
 CSS = """
 <style>
@@ -35,7 +35,7 @@ CSS = """
     padding-top: 3.2rem;
     padding-bottom: 1rem;
 }
-.ninja-banner {
+.app-banner {
     background: #1c1c1c;
     color: #f4d35e;
     padding: 18px 24px;
@@ -46,7 +46,7 @@ CSS = """
     letter-spacing: 2px;
     margin-bottom: 6px;
 }
-.ninja-sub {
+.app-sub {
     text-align:center;
     color:#666;
     margin-bottom:24px;
@@ -77,7 +77,7 @@ st.markdown(CSS, unsafe_allow_html=True)
 
 
 def banner():
-    st.markdown('<div class="ninja-banner">🥷 NUMERACY NINJAS</div>', unsafe_allow_html=True)
+    st.markdown('<div class="app-banner">🧮 BGE NUMERACY</div>', unsafe_allow_html=True)
 
 
 # ---------------------------------------------------------------- state init
@@ -132,7 +132,7 @@ def fading_scaffold(scaffold_html: str, seconds_remaining: float, key: str):
 # -------------------------------------------------------------------- pages
 def render_landing():
     banner()
-    st.markdown('<div class="ninja-sub">Pick a practice zone to get started.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="app-sub">Pick a practice zone to get started.</div>', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("### 🗝️ Key Skills")
@@ -222,10 +222,16 @@ def render_quiz():
         return
 
     title, _fn = cat["skills"][st.session_state.skill_id]
-    st.markdown(
-        f'<div class="quiz-header"><span>🥷 {title}</span><span>Question {idx + 1} of {n}</span></div>',
-        unsafe_allow_html=True,
-    )
+    col_home, col_head = st.columns([1, 5])
+    with col_home:
+        if st.button("🏠 Home", key=f"home_{idx}"):
+            go("landing")
+            st.rerun()
+    with col_head:
+        st.markdown(
+            f'<div class="quiz-header"><span>{title}</span><span>Question {idx + 1} of {n}</span></div>',
+            unsafe_allow_html=True,
+        )
     st.progress(idx / n)
 
     q = st.session_state.quiz_questions[idx]
@@ -260,7 +266,7 @@ def render_quiz():
             st.rerun()
     else:
         if st.session_state.last_correct:
-            st.success("Correct! 🥷")
+            st.success("Correct! ✅")
         else:
             st.error(f"Not quite. You wrote **{st.session_state.last_user_answer or '(blank)'}** — the answer was **{q.answer_display}**.")
         if st.button("Next question ▶", type="primary", use_container_width=True):

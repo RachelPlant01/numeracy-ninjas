@@ -1,4 +1,4 @@
-"""One question-generator function per Numeracy Ninjas skill.
+"""One question-generator function per BGE Numeracy skill.
 
 Each generator takes no arguments and returns a `Question`, with fresh
 random numbers every call and a scaffold appropriate to that skill.

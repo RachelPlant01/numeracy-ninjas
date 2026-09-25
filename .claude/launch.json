@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "numeracy-ninjas",
+      "name": "bge-numeracy",
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "streamlit", "run", "app.py", "--server.headless", "true", "--server.port", "8517"],
       "port": 8517
