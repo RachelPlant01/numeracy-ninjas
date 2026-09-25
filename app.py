@@ -107,6 +107,23 @@ def go(stage: str):
     st.session_state.stage = stage
 
 
+def generate_question_sequence(gen_fn, n: int, max_attempts: int = 20) -> list:
+    """Generate `n` questions, re-rolling a question if it would repeat the
+    prompt immediately before it (so pupils don't see the same question
+    twice in a row)."""
+    questions = []
+    prev_prompt = None
+    for _ in range(n):
+        q = gen_fn()
+        for _ in range(max_attempts):
+            if q.prompt != prev_prompt:
+                break
+            q = gen_fn()
+        questions.append(q)
+        prev_prompt = q.prompt
+    return questions
+
+
 def fading_scaffold(scaffold_html: str, seconds_remaining: float, key: str):
     """Render scaffold HTML that hides itself client-side after `seconds_remaining`."""
     components.html(
@@ -197,7 +214,7 @@ def render_settings():
 
     if st.button("Start ▶", type="primary", use_container_width=True):
         _fn_gen = cat["skills"][st.session_state.skill_id][1]
-        st.session_state.quiz_questions = [_fn_gen() for _ in range(cat["n_questions"])]
+        st.session_state.quiz_questions = generate_question_sequence(_fn_gen, cat["n_questions"])
         st.session_state.quiz_index = 0
         st.session_state.quiz_results = []
         st.session_state.awaiting_feedback = False
@@ -248,15 +265,12 @@ def render_quiz():
         st.markdown(q.scaffold_html, unsafe_allow_html=True)
 
     if not st.session_state.awaiting_feedback:
-        with st.form(key=f"answer_form_{idx}", clear_on_submit=False):
-            col_input, col_btn = st.columns([3, 1])
-            with col_input:
-                user_answer = st.text_input(
-                    "Your answer", key=f"input_{idx}",
-                    placeholder="Type your answer…", label_visibility="collapsed",
-                )
-            with col_btn:
-                submitted = st.form_submit_button("Submit ▶", type="primary", use_container_width=True)
+        with st.form(key=f"answer_form_{idx}", clear_on_submit=False, enter_to_submit=True):
+            user_answer = st.text_input(
+                "Your answer", key=f"input_{idx}",
+                placeholder="Type your answer, then press Enter…", label_visibility="collapsed",
+            )
+            submitted = st.form_submit_button("Submit ▶", type="primary", use_container_width=True)
         if submitted:
             correct = q.checker(user_answer)
             st.session_state.quiz_results.append(correct)
