@@ -194,20 +194,50 @@ def double_frame(n: int, note: str | None = None) -> str:
 _DIENES_UNIT = 18  # a ten-rod is exactly 10 of these squares laid end to end
 
 
-def _dienes_row(n: int) -> str:
-    tens, ones = divmod(n, 10)
+def _dienes_rod(segments: int = 10, cut: bool = False) -> str:
+    """A ten-rod (or, with fewer segments, a rod that's been broken off
+    part-way — used for a ten split in half). `cut` draws a dashed line at
+    the broken end."""
     u = _DIENES_UNIT
-    rod = (
-        f'<svg width="{u*10+2}" height="{u+2}" viewBox="0 0 {u*10+2} {u+2}">'
-        f'<rect x="1" y="1" width="{u*10}" height="{u}" rx="2" fill="#4a90d9" stroke="#2c5d8a"/>'
-        + "".join(f'<line x1="{1+u*i}" y1="1" x2="{1+u*i}" y2="{u+1}" stroke="#ffffff"/>' for i in range(1, 10))
-        + "</svg>"
-    )
-    cube = (
+    w = u * segments
+    svg = [
+        f'<svg width="{w+2}" height="{u+2}" viewBox="0 0 {w+2} {u+2}">',
+        f'<rect x="1" y="1" width="{w}" height="{u}" rx="2" fill="#4a90d9" stroke="#2c5d8a"/>',
+    ]
+    svg += [f'<line x1="{1+u*i}" y1="1" x2="{1+u*i}" y2="{u+1}" stroke="#ffffff"/>' for i in range(1, segments)]
+    if cut:
+        svg.append(f'<line x1="{w+1}" y1="0" x2="{w+1}" y2="{u+2}" stroke="#333" stroke-width="2" stroke-dasharray="3,2"/>')
+    svg.append("</svg>")
+    return "".join(svg)
+
+
+def _dienes_cube() -> str:
+    u = _DIENES_UNIT
+    return (
         f'<svg width="{u+2}" height="{u+2}" viewBox="0 0 {u+2} {u+2}">'
         f'<rect x="1" y="1" width="{u}" height="{u}" rx="2" fill="#f2a541" stroke="#b9740a"/>'
         "</svg>"
     )
+
+
+def _dienes_split_cube() -> str:
+    """A unit cube cut in half by a dashed line — for an odd units digit
+    that can't be shared out evenly."""
+    u = _DIENES_UNIT
+    half = u / 2
+    return (
+        f'<svg width="{u+2}" height="{u+2}" viewBox="0 0 {u+2} {u+2}">'
+        f'<rect x="1" y="1" width="{half}" height="{u}" fill="#f2a541" stroke="#b9740a"/>'
+        f'<rect x="{1+half}" y="1" width="{half}" height="{u}" fill="none" stroke="#b9740a"/>'
+        f'<line x1="{1+half}" y1="0" x2="{1+half}" y2="{u+2}" stroke="#333" stroke-width="2" stroke-dasharray="3,2"/>'
+        "</svg>"
+    )
+
+
+def _dienes_row(n: int) -> str:
+    tens, ones = divmod(n, 10)
+    rod = _dienes_rod()
+    cube = _dienes_cube()
     rods_html = "".join(f'<div>{rod}</div>' for _ in range(tens))
     ones_html = ""
     if ones:
@@ -229,6 +259,39 @@ def double_dienes(n: int) -> str:
     again"."""
     row = _dienes_row(n)
     inner = f'<div style="display:flex;flex-direction:column;gap:16px;">{row}{row}</div>'
+    return _wrap(inner)
+
+
+def halving_dienes(n: int) -> str:
+    """Base-ten blocks for `n`, split into two equal (stacked) halves. A
+    ten-rod that can't be shared out whole is cut into a half-rod (5
+    segments) for each half; a leftover unit cube is likewise cut in half —
+    so an uneven split is shown as a literal cut, not just a number."""
+    tens, ones = divmod(n, 10)
+    tens_half, tens_odd = divmod(tens, 2)
+    ones_half, ones_odd = divmod(ones, 2)
+
+    def one_half() -> str:
+        rods = [_dienes_rod() for _ in range(tens_half)]
+        if tens_odd:
+            rods.append(_dienes_rod(segments=5, cut=True))
+        rods_html = "".join(f"<div>{r}</div>" for r in rods)
+
+        cubes = [_dienes_cube() for _ in range(ones_half)]
+        if ones_odd:
+            cubes.append(_dienes_split_cube())
+        cubes_html = ""
+        if cubes:
+            first = "".join(cubes[:5])
+            groups = [f'<div style="display:flex;gap:2px;">{first}</div>']
+            if len(cubes) > 5:
+                groups.append(f'<div style="display:flex;gap:2px;">{"".join(cubes[5:])}</div>')
+            cubes_html = f'<div style="display:flex;gap:10px;margin-top:4px;">{"".join(groups)}</div>'
+
+        return f'<div style="display:flex;flex-direction:column;gap:3px;">{rods_html}{cubes_html}</div>'
+
+    half = one_half()
+    inner = f'<div style="display:flex;flex-direction:column;gap:16px;">{half}{half}</div>'
     return _wrap(inner)
 
 

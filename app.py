@@ -143,7 +143,7 @@ def fading_scaffold(scaffold_html: str, seconds_remaining: float, key: str):
         }}, {max(0, int(seconds_remaining * 1000))});
         </script>
         """,
-        height=280,
+        height=340,
         scrolling=True,
     )
 

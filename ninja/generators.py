@@ -579,7 +579,7 @@ def ms_halve_single_digit() -> Question:
 def ms_halve_two_digit() -> Question:
     n = random.choice([n for n in range(20, 99) if n % 2 == 0]) if random.random() < 0.6 else random.randint(20, 99)
     ans = n / 2
-    scaffold = sc.hint_list([f"Halve the tens, then halve the units of {n}.", "Combine the two halves."])
+    scaffold = sc.halving_dienes(n)
     style = random.choice(["halve", "div", "half_of"])
     if style == "halve":
         return Question(f"Halve {n}", _fmt(ans), numeric_check(ans, 0.01), scaffold)
