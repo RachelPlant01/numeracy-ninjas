@@ -559,7 +559,7 @@ def ms_double_single_digit() -> Question:
 def ms_double_two_digit() -> Question:
     n = random.randint(11, 49)
     ans = n * 2
-    scaffold = sc.hint_list([f"Split {n} into tens and units.", "Double each part, then add them back together."])
+    scaffold = sc.double_dienes(n)
     style = random.choice(["double", "plus"])
     if style == "double":
         return Question(f"Double {n}", str(ans), numeric_check(ans), scaffold)

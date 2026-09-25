@@ -190,6 +190,41 @@ def double_frame(n: int, note: str | None = None) -> str:
     return _wrap(inner, note)
 
 
+# ---------------------------------------------------------------- dienes blocks
+def _dienes_row(n: int) -> str:
+    tens, ones = divmod(n, 10)
+    rod = (
+        '<svg width="22" height="92" viewBox="0 0 22 92">'
+        '<rect x="1" y="1" width="20" height="90" rx="2" fill="#4a90d9" stroke="#2c5d8a"/>'
+        + "".join(f'<line x1="1" y1="{1+9*i}" x2="21" y2="{1+9*i}" stroke="#ffffff"/>' for i in range(1, 10))
+        + "</svg>"
+    )
+    cube = (
+        '<svg width="22" height="22" viewBox="0 0 22 22">'
+        '<rect x="1" y="1" width="20" height="20" rx="2" fill="#f2a541" stroke="#b9740a"/>'
+        "</svg>"
+    )
+    rods_html = "".join(rod for _ in range(tens))
+    cubes_html = ""
+    if ones:
+        cells = "".join(cube for _ in range(ones))
+        cubes_html = f'<div style="display:grid;grid-template-columns:repeat(5,22px);gap:3px;">{cells}</div>'
+    return (
+        '<div style="display:flex;align-items:flex-end;gap:6px;">'
+        f'<div style="display:flex;gap:4px;">{rods_html}</div>{cubes_html}</div>'
+    )
+
+
+def double_dienes(n: int) -> str:
+    """Base-ten (Dienes) blocks for a two-digit number, with a second,
+    identical set of blocks directly underneath — no caption, just the two
+    matching sets of blocks so doubling reads as "this, and the same
+    again"."""
+    row = _dienes_row(n)
+    inner = f'<div style="display:flex;flex-direction:column;gap:16px;">{row}{row}</div>'
+    return _wrap(inner)
+
+
 # -------------------------------------------------------------------- bar model
 def bar_model(whole_label: str, parts: list[tuple[str, float]], note: str | None = None) -> str:
     """parts: list of (label, weight) — rendered as proportional segments."""
