@@ -162,21 +162,28 @@ def ten_frame_pair(known: int, total: int, note: str | None = None) -> str:
 
 
 def double_frame(n: int, note: str | None = None) -> str:
-    """Two equal rows of `n` solid dots, stacked so each dot sits directly
-    above its twin — makes "double" read as two identical groups rather
-    than one long count."""
+    """Two ten-frames, stacked, each filled with `n` solid dots in the usual
+    ten-frame reading order (top row of 5 first, then the row below) — so
+    doubling reads as "this ten-frame, and the same again" rather than one
+    long count."""
 
-    def row() -> str:
+    def one_ten_frame(count: int) -> str:
         cells = []
-        for _ in range(n):
+        for i in range(10):
+            dot = '<circle cx="19" cy="19" r="13" fill="#111"/>' if i < count else ""
             cells.append(
                 '<div style="width:38px;height:38px;border:1px solid #333;'
                 'display:flex;align-items:center;justify-content:center;">'
-                '<svg width="38" height="38"><circle cx="19" cy="19" r="13" fill="#111"/></svg></div>'
+                f'<svg width="38" height="38">{dot}</svg></div>'
             )
-        return f'<div style="display:flex;">{"".join(cells)}</div>'
+        row0 = "".join(cells[0:5])
+        row1 = "".join(cells[5:10])
+        return (
+            '<div style="display:inline-grid;grid-template-columns:repeat(5,38px);'
+            f'grid-template-rows:repeat(2,38px);width:190px;">{row0}{row1}</div>'
+        )
 
-    inner = f'<div style="display:flex;flex-direction:column;gap:4px;">{row()}{row()}</div>'
+    inner = f'<div style="display:flex;flex-direction:column;gap:10px;">{one_ten_frame(n)}{one_ten_frame(n)}</div>'
     return _wrap(inner, note)
 
 
