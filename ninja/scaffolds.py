@@ -448,40 +448,36 @@ def bar_model(whole_label: str, parts: list[tuple[str, float]], note: str | None
 
 
 # ------------------------------------------------------------ near doubles
-def near_doubles_bars(a: int, b: int) -> str:
-    """Two bars, drawn to scale and lined up on the left, for the two
-    numbers being added. The shorter one is plain; the longer one is the
-    same length plus a highlighted, labelled extra bit — so it reads as
-    "these are almost the same, except for this much" rather than two
-    unrelated numbers, supporting the double-and-adjust strategy."""
-    lo, hi = min(a, b), max(a, b)
-    diff = hi - lo
-    scale = 7
-    bar_h = 30
-    pad_top = 20
+def near_doubles_dienes(lo: int, extra: int) -> str:
+    """Base-ten blocks for `lo`, then the same rods and unit cubes again
+    with `extra` highlighted cubes tacked on the end — so the larger
+    addend reads as "the smaller one's blocks, plus a couple more" rather
+    than two independently-built numbers whose relationship has to be
+    inferred."""
+    tens, ones = divmod(lo, 10)
+    rod = _dienes_rod()
+    cube = _dienes_cube()
+    cube_hl = (
+        f'<svg width="{_DIENES_UNIT+2}" height="{_DIENES_UNIT+2}" viewBox="0 0 {_DIENES_UNIT+2} {_DIENES_UNIT+2}">'
+        f'<rect x="1" y="1" width="{_DIENES_UNIT}" height="{_DIENES_UNIT}" rx="2" fill="#e74c3c" stroke="#a72d1d"/>'
+        "</svg>"
+    )
+    rods_html = "".join(f'<div>{rod}</div>' for _ in range(tens))
 
-    def make_bar(total_units: int, highlight_units: int, label: str) -> str:
-        width = max(total_units * scale, 1)
-        base_w = (total_units - highlight_units) * scale
-        parts = [f'<svg width="{width}" height="{bar_h + pad_top}" viewBox="0 0 {width} {bar_h + pad_top}">']
-        parts.append(f'<rect x="0" y="{pad_top}" width="{base_w}" height="{bar_h}" fill="#4a90d9" stroke="#2c5d8a"/>')
-        if highlight_units:
-            hl_w = highlight_units * scale
-            parts.append(f'<rect x="{base_w}" y="{pad_top}" width="{hl_w}" height="{bar_h}" fill="#e74c3c" stroke="#a72d1d"/>')
-            parts.append(
-                f'<text x="{base_w + hl_w / 2}" y="{pad_top - 6}" text-anchor="middle" font-size="12" '
-                f'fill="#a72d1d" font-weight="bold">+{highlight_units}</text>'
-            )
-        parts.append(
-            f'<text x="{width / 2}" y="{pad_top + bar_h / 2 + 5}" text-anchor="middle" '
-            f'font-size="14" fill="#ffffff" font-weight="bold">{label}</text>'
-        )
-        parts.append("</svg>")
-        return "".join(parts)
+    def block(extra_count: int) -> str:
+        cells = [cube for _ in range(ones)] + [cube_hl for _ in range(extra_count)]
+        cubes_html = ""
+        if cells:
+            first = "".join(cells[:5])
+            groups = [f'<div style="display:flex;gap:2px;">{first}</div>']
+            if len(cells) > 5:
+                groups.append(f'<div style="display:flex;gap:2px;">{"".join(cells[5:])}</div>')
+            cubes_html = f'<div style="display:flex;gap:10px;margin-top:4px;">{"".join(groups)}</div>'
+        return f'<div style="display:flex;flex-direction:column;gap:3px;">{rods_html}{cubes_html}</div>'
 
-    bar_lo = make_bar(lo, 0, str(lo))
-    bar_hi = make_bar(hi, diff, str(hi))
-    inner = f'<div style="display:flex;flex-direction:column;gap:10px;">{bar_lo}{bar_hi}</div>'
+    row_lo = block(0)
+    row_hi = block(extra)
+    inner = f'<div style="display:flex;flex-direction:column;gap:16px;">{row_lo}{row_hi}</div>'
     return _wrap(inner)
 
 

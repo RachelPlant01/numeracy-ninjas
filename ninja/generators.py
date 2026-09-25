@@ -637,7 +637,8 @@ def ms_add_near_doubles() -> Question:
     diff = random.choice([-2, -1, 1, 2])
     b = a + diff
     ans = a + b
-    scaffold = sc.near_doubles_bars(a, b)
+    lo, hi = min(a, b), max(a, b)
+    scaffold = sc.near_doubles_dienes(lo, hi - lo)
     return Question(f"{a} + {b}", str(ans), numeric_check(ans), scaffold)
 
 
