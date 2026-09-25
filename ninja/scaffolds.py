@@ -232,6 +232,38 @@ def double_dienes(n: int) -> str:
     return _wrap(inner)
 
 
+# ------------------------------------------------------------- halving columns
+def halving_columns(n: int) -> str:
+    """Two matched columns (filled dots vs outline dots) showing `n` split
+    into two equal groups. If `n` is odd, the leftover dot is drawn split
+    down the middle by a dashed line — straddling both columns — instead of
+    being dropped into one side, so a half-remainder is visible rather than
+    implied."""
+    half = n // 2
+    odd = n % 2 == 1
+
+    def full_dot() -> str:
+        return '<svg width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="14" r="11" fill="#e74c3c" stroke="#a72d1d" stroke-width="2"/></svg>'
+
+    def empty_dot() -> str:
+        return '<svg width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="14" r="11" fill="none" stroke="#333" stroke-width="2"/></svg>'
+
+    def split_dot() -> str:
+        return (
+            '<svg width="28" height="28" viewBox="0 0 28 28">'
+            '<path d="M14,3 A11,11 0 0,0 14,25 Z" fill="#e74c3c" stroke="#a72d1d" stroke-width="2"/>'
+            '<path d="M14,3 A11,11 0 0,1 14,25 Z" fill="none" stroke="#333" stroke-width="2"/>'
+            '<line x1="14" y1="2" x2="14" y2="26" stroke="#333" stroke-width="2" stroke-dasharray="3,2"/>'
+            "</svg>"
+        )
+
+    rows = [f'<div style="display:flex;gap:14px;">{full_dot()}{empty_dot()}</div>' for _ in range(half)]
+    if odd:
+        rows.append(split_dot())
+    inner = f'<div style="display:flex;flex-direction:column;gap:4px;align-items:center;">{"".join(rows)}</div>'
+    return _wrap(inner)
+
+
 # -------------------------------------------------------------------- bar model
 def bar_model(whole_label: str, parts: list[tuple[str, float]], note: str | None = None) -> str:
     """parts: list of (label, weight) — rendered as proportional segments."""

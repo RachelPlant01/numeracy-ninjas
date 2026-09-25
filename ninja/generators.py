@@ -569,7 +569,7 @@ def ms_double_two_digit() -> Question:
 def ms_halve_single_digit() -> Question:
     n = random.choice([2, 4, 6, 8]) if random.random() < 0.7 else random.randint(1, 9)
     ans = n / 2
-    scaffold = sc.ten_frame_pair(n, n, note=f"Share {n} dots equally between two groups.")
+    scaffold = sc.halving_columns(n)
     style = random.choice(["halve", "div"])
     if style == "halve":
         return Question(f"Halve {n}", _fmt(ans), numeric_check(ans, 0.01), scaffold)
