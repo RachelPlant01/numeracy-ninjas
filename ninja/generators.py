@@ -350,7 +350,7 @@ def ks_simple_directed_number() -> Question:
     op = random.choice(["+", "-"])
     ans = a + b if op == "+" else a - b
     a_str = f"({a})" if a < 0 else str(a)
-    scaffold = sc.number_line(-15, 15, jumps=[(a, ans, ("+" if op == "+" else "-") + str(b), "")], circle=ans, note="Use the number line: move right to add, left to subtract.")
+    scaffold = sc.number_line(-15, 15, jumps=[(a, ans, ("+" if op == "+" else "-") + str(b), True)], circle=a, hide_value=ans)
     return Question(f"{a_str} {op} {b}", str(ans), numeric_check(ans), scaffold)
 
 
@@ -358,7 +358,7 @@ def ks_add_negative_number() -> Question:
     a = random.randint(-15, 15)
     b = random.randint(1, 15)
     ans = a + (-b)
-    scaffold = sc.number_line(-20, 20, jumps=[(a, ans, f"-{b}", "")], circle=ans, note="Adding a negative number means moving left.")
+    scaffold = sc.number_line(-20, 20, jumps=[(a, ans, f"-{b}", True)], circle=a, hide_value=ans)
     return Question(f"{a} + ({-b})", str(ans), numeric_check(ans), scaffold)
 
 
@@ -366,7 +366,7 @@ def ks_subtract_negative_number() -> Question:
     a = random.randint(-15, 15)
     b = random.randint(1, 15)
     ans = a - (-b)
-    scaffold = sc.number_line(-20, 20, jumps=[(a, ans, f"+{b}", "")], circle=ans, note="Subtracting a negative number means moving right (it becomes addition).")
+    scaffold = sc.number_line(-20, 20, jumps=[(a, ans, f"+{b}", True)], circle=a, hide_value=ans)
     return Question(f"{a} - ({-b})", str(ans), numeric_check(ans), scaffold)
 
 
@@ -535,14 +535,14 @@ def ms_number_bonds_to_20() -> Question:
     known = random.randint(1, 19)
     other = 20 - known
     ans = other
-    scaffold = sc.number_line(0, 20, jumps=[(known, 20, f"+{other}", "")], circle=known, note="How far from the known number up to 20?")
+    scaffold = sc.number_line(0, 20, jumps=[(known, 20, "+?", True)], circle=known)
     return Question(f"☐ + {known} = 20", str(ans), numeric_check(ans), scaffold)
 
 
 def ms_number_bonds_to_100() -> Question:
     known = random.choice(range(1, 100, 1))
     ans = 100 - known
-    scaffold = sc.number_line(0, 100, jumps=[(known, 100, f"+{ans}", "")], circle=known, note="Jump from the known number up to the next 100.")
+    scaffold = sc.number_line(0, 100, jumps=[(known, 100, "+?", True)], circle=known)
     return Question(f"{known} + ☐ = 100", str(ans), numeric_check(ans), scaffold)
 
 
@@ -625,7 +625,7 @@ def ms_how_many_to_multiple_of_10() -> Question:
     if target == n:
         target += 10
     ans = target - n
-    scaffold = sc.number_line(max(0, n - 15), target + 5, jumps=[(n, target, f"+{ans}", "")], circle=target, note="How far to the next multiple of 10?")
+    scaffold = sc.number_line(max(0, n - 15), target + 5, jumps=[(n, target, "+?", True)], circle=target)
     return Question(f"{n} + ☐ = {target}", str(ans), numeric_check(ans), scaffold)
 
 
@@ -671,7 +671,7 @@ def ms_add_bridge_10() -> Question:
     remainder = b - bridge
     landmark = a + bridge
     ans = remainder
-    scaffold = sc.number_line(a - 5, landmark + b, jumps=[(a, landmark, f"+{bridge}", ""), (landmark, landmark + remainder, "+?", "")], circle=landmark, note=f"First jump to {landmark} (the next multiple of 10).")
+    scaffold = sc.number_line(a - 5, landmark + b, jumps=[(a, landmark, f"+{bridge}", False), (landmark, landmark + remainder, "+?", True)], circle=landmark)
     return Question(f"{a} + {b} = {a} + {bridge} + ☐", str(ans), numeric_check(ans), scaffold)
 
 
@@ -684,7 +684,7 @@ def ms_subtract_bridge_10() -> Question:
     remainder = b - to_ten
     landmark = a - to_ten
     ans = remainder
-    scaffold = sc.number_line(max(0, landmark - b), a + 5, jumps=[(a, landmark, f"-{to_ten}", ""), (landmark, landmark - remainder, "-?", "")], circle=landmark, note=f"First jump down to {landmark} (the ten below).")
+    scaffold = sc.number_line(max(0, landmark - b), a + 5, jumps=[(a, landmark, f"-{to_ten}", False), (landmark, landmark - remainder, "-?", True)], circle=landmark)
     return Question(f"{a} − {b} = {a} − {to_ten} − ☐", str(ans), numeric_check(ans), scaffold)
 
 
@@ -692,7 +692,7 @@ def ms_count_smallest_to_largest() -> Question:
     small = random.randint(50, 990)
     diff = random.randint(1, 6)
     large = small + diff
-    scaffold = sc.number_line(small - 2, large + 2, jumps=[(small, large, f"+{diff}", "")], circle=large, note="When two numbers are close together, count up from the smaller one instead of subtracting.")
+    scaffold = sc.number_line(small - 2, large + 2, jumps=[(small, large, "+?", True)], circle=large)
     return Question(f"{large} − {small}", str(diff), numeric_check(diff), scaffold)
 
 

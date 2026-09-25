@@ -8,6 +8,7 @@ a plain worked-steps hint list for skills that don't have a natural picture.
 from __future__ import annotations
 
 import html
+import math
 
 
 CARD_STYLE = (
@@ -26,11 +27,22 @@ def _wrap(inner: str, note: str | None = None) -> str:
 def number_line(
     min_v: int,
     max_v: int,
-    jumps: list[tuple[float, float, str, str]] | None = None,
+    jumps: list[tuple[float, float, str, bool]] | None = None,
     circle: float | None = None,
+    hide_value: float | None = None,
     note: str | None = None,
     width: int = 640,
 ) -> str:
+    """A number line, zebra-shaded in blocks of 5 so counts are easier to
+    "see" without counting every tick one by one.
+
+    `jumps` is a list of (from, to, label, dashed) — set `dashed=True` (and
+    label="?") for a jump whose size is the thing the pupil must work out,
+    so the scaffold never prints the answer itself. `circle` highlights a
+    landmark value that's already given in the question; `hide_value` blanks
+    out a tick's printed number (draws an empty box instead) for a position
+    on the line that *is* the unknown being solved for.
+    """
     height = 150 if jumps else 90
     n = max_v - min_v
     if n <= 0:
@@ -46,6 +58,18 @@ def number_line(
         f'xmlns="http://www.w3.org/2000/svg" font-family="inherit">'
     ]
     y_line = height - 30
+
+    # zebra-shade in blocks of 5 (two alternating bands) behind everything else
+    band_colors = ["#eaf2fd", "#fdf3e2"]
+    block = math.floor(min_v / 5) * 5
+    i = 0
+    while block < max_v:
+        x0 = x(max(block, min_v))
+        x1 = x(min(block + 5, max_v))
+        svg_parts.append(f'<rect x="{x0:.1f}" y="{y_line-34}" width="{max(0, x1-x0):.1f}" height="60" fill="{band_colors[i % 2]}"/>')
+        block += 5
+        i += 1
+
     svg_parts.append(
         f'<line x1="{pad}" y1="{y_line}" x2="{width - pad}" y2="{y_line}" '
         f'stroke="#222" stroke-width="2" marker-end="url(#arrow)"/>'
@@ -58,22 +82,31 @@ def number_line(
     v = min_v
     while v <= max_v:
         xv = x(v)
-        svg_parts.append(f'<line x1="{xv}" y1="{y_line-6}" x2="{xv}" y2="{y_line+6}" stroke="#222" stroke-width="1.5"/>')
-        if circle is not None and abs(v - circle) < 1e-9:
+        on5 = v % 5 == 0
+        tick_h = 9 if on5 else 6
+        tick_w = 2.5 if on5 else 1.5
+        svg_parts.append(f'<line x1="{xv}" y1="{y_line-tick_h}" x2="{xv}" y2="{y_line+tick_h}" stroke="#222" stroke-width="{tick_w}"/>')
+        weight = "bold" if on5 else "normal"
+        if hide_value is not None and abs(v - hide_value) < 1e-9:
+            svg_parts.append(
+                f'<rect x="{xv-11:.1f}" y="{y_line+14}" width="22" height="18" rx="3" '
+                f'fill="#fff" stroke="#c0392b" stroke-width="2"/>'
+            )
+        elif circle is not None and abs(v - circle) < 1e-9:
             svg_parts.append(f'<circle cx="{xv}" cy="{y_line+22}" r="13" fill="none" stroke="#c0392b" stroke-width="2"/>')
             svg_parts.append(f'<text x="{xv}" y="{y_line+27}" text-anchor="middle" font-size="13" fill="#c0392b" font-weight="bold">{v:g}</text>')
         else:
-            svg_parts.append(f'<text x="{xv}" y="{y_line+24}" text-anchor="middle" font-size="13" fill="#222">{v:g}</text>')
+            svg_parts.append(f'<text x="{xv}" y="{y_line+24}" text-anchor="middle" font-size="13" fill="#222" font-weight="{weight}">{v:g}</text>')
         v += step
 
     colors = ["#2e6da4", "#c0392b", "#27ae60", "#8e44ad"]
     if jumps:
-        for i, (a, b, label, _c) in enumerate(jumps):
+        for i, (a, b, label, dashed) in enumerate(jumps):
             color = colors[i % len(colors)]
             xa, xb = x(a), x(b)
             mid = (xa + xb) / 2
             arc_h = 34 + 18 * i
-            dash = "" if i == 0 else 'stroke-dasharray="5,4"'
+            dash = 'stroke-dasharray="5,4"' if dashed else ""
             svg_parts.append(
                 f'<path d="M{xa},{y_line} Q{mid},{y_line-arc_h} {xb},{y_line}" '
                 f'fill="none" stroke="{color}" stroke-width="2.5" {dash} marker-end="url(#arrow)"/>'
