@@ -549,7 +549,7 @@ def ms_number_bonds_to_100() -> Question:
 def ms_double_single_digit() -> Question:
     n = random.randint(1, 9)
     ans = n * 2
-    scaffold = sc.ten_frame_pair(n, n * 2, note=f"Double means {n} + {n}.")
+    scaffold = sc.double_frame(n, note=f"Double means {n} + {n}.")
     style = random.choice(["double", "plus"])
     if style == "double":
         return Question(f"Double {n}", str(ans), numeric_check(ans), scaffold)

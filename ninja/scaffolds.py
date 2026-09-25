@@ -161,6 +161,25 @@ def ten_frame_pair(known: int, total: int, note: str | None = None) -> str:
     return _wrap(inner, note)
 
 
+def double_frame(n: int, note: str | None = None) -> str:
+    """Two equal rows of `n` solid dots, stacked so each dot sits directly
+    above its twin — makes "double" read as two identical groups rather
+    than one long count."""
+
+    def row() -> str:
+        cells = []
+        for _ in range(n):
+            cells.append(
+                '<div style="width:38px;height:38px;border:1px solid #333;'
+                'display:flex;align-items:center;justify-content:center;">'
+                '<svg width="38" height="38"><circle cx="19" cy="19" r="13" fill="#111"/></svg></div>'
+            )
+        return f'<div style="display:flex;">{"".join(cells)}</div>'
+
+    inner = f'<div style="display:flex;flex-direction:column;gap:4px;">{row()}{row()}</div>'
+    return _wrap(inner, note)
+
+
 # -------------------------------------------------------------------- bar model
 def bar_model(whole_label: str, parts: list[tuple[str, float]], note: str | None = None) -> str:
     """parts: list of (label, weight) — rendered as proportional segments."""
