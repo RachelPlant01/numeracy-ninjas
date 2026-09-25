@@ -364,6 +364,27 @@ def place_value_grid(number_str: str, headers: list[str], highlight: int | None 
     return _wrap(grid_h + grid_d, note)
 
 
+# ------------------------------------------------------------- hundred square
+def hundred_square(a: int, b: int) -> str:
+    """A 1-100 grid (10 per row) with cell `a` and cell `b` highlighted.
+    When b = a + 10, b sits directly below a in the same column — showing
+    that adding 10 just moves down one row."""
+    cells = []
+    for i in range(1, 101):
+        bg, color = "#ffffff", "#222"
+        if i == a:
+            bg, color = "#e74c3c", "#ffffff"
+        elif i == b:
+            bg, color = "#2e6da4", "#ffffff"
+        cells.append(
+            f'<div style="width:26px;height:26px;display:flex;align-items:center;'
+            f'justify-content:center;font-size:11px;border:1px solid #ccc;'
+            f'background:{bg};color:{color};font-weight:{"bold" if i in (a, b) else "normal"};">{i}</div>'
+        )
+    grid = f'<div style="display:grid;grid-template-columns:repeat(10,26px);gap:1px;width:269px;">{"".join(cells)}</div>'
+    return _wrap(grid)
+
+
 # --------------------------------------------------------------------- clock
 def clock_face(hour24: int, minute: int, note: str | None = None) -> str:
     hour = hour24 % 12

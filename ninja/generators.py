@@ -589,10 +589,10 @@ def ms_halve_two_digit() -> Question:
 
 
 def ms_add_10() -> Question:
-    n = random.randint(1, 990)
+    n = random.randint(1, 90)
     ans = n + 10
     order = random.choice([f"10 + {n}", f"{n} + 10"])
-    scaffold = sc.hint_list(["Adding 10 only changes the tens digit — the units digit stays the same."])
+    scaffold = sc.hundred_square(n, ans)
     return Question(order, str(ans), numeric_check(ans), scaffold)
 
 
