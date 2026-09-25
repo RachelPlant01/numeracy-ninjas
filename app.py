@@ -146,6 +146,51 @@ def fading_scaffold(scaffold_html: str, seconds_remaining: float, key: str):
     )
 
 
+def focus_answer_input():
+    """Put the cursor in the answer box automatically, so pupils can start
+    typing straight away without clicking into it first."""
+    components.html(
+        """
+        <script>
+        setTimeout(function() {
+            const el = window.parent.document.querySelector(
+                'input[placeholder="Type your answer, then press Enter…"]'
+            );
+            if (el) el.focus();
+        }, 80);
+        </script>
+        """,
+        height=0,
+    )
+
+
+def enable_enter_to_advance():
+    """Let pupils press Enter to move to the next question instead of
+    having to click the button — attaches a document-level listener on the
+    parent page and swaps out any listener from a previous render."""
+    components.html(
+        """
+        <script>
+        if (window.parent.__bgeNextHandler) {
+            window.parent.document.removeEventListener('keydown', window.parent.__bgeNextHandler);
+        }
+        window.parent.__bgeNextHandler = function(e) {
+            if (e.key !== 'Enter') return;
+            const btns = window.parent.document.querySelectorAll('button');
+            for (const b of btns) {
+                if (b.innerText.includes('Next question')) {
+                    b.click();
+                    break;
+                }
+            }
+        };
+        window.parent.document.addEventListener('keydown', window.parent.__bgeNextHandler);
+        </script>
+        """,
+        height=0,
+    )
+
+
 # -------------------------------------------------------------------- pages
 def render_landing():
     banner()
@@ -271,6 +316,7 @@ def render_quiz():
                 placeholder="Type your answer, then press Enter…", label_visibility="collapsed",
             )
             submitted = st.form_submit_button("Submit ▶", type="primary", use_container_width=True)
+        focus_answer_input()
         if submitted:
             correct = q.checker(user_answer)
             st.session_state.quiz_results.append(correct)
@@ -288,6 +334,7 @@ def render_quiz():
             st.session_state.awaiting_feedback = False
             st.session_state.question_shown_at = time.time()
             st.rerun()
+        enable_enter_to_advance()
 
 
 def render_results():
