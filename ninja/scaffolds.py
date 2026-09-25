@@ -211,8 +211,14 @@ def _dienes_row(n: int) -> str:
     rods_html = "".join(f'<div>{rod}</div>' for _ in range(tens))
     ones_html = ""
     if ones:
-        cells = "".join(cube for _ in range(ones))
-        ones_html = f'<div style="display:flex;gap:2px;margin-top:4px;">{cells}</div>'
+        # group in fives (like the ten-frames elsewhere) so the count is
+        # easy to see at a glance instead of a plain row to tally up
+        first_group = "".join(cube for _ in range(min(ones, 5)))
+        groups = [f'<div style="display:flex;gap:2px;">{first_group}</div>']
+        if ones > 5:
+            second_group = "".join(cube for _ in range(ones - 5))
+            groups.append(f'<div style="display:flex;gap:2px;">{second_group}</div>')
+        ones_html = f'<div style="display:flex;gap:10px;margin-top:4px;">{"".join(groups)}</div>'
     return f'<div style="display:flex;flex-direction:column;gap:3px;">{rods_html}{ones_html}</div>'
 
 
