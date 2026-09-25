@@ -127,24 +127,30 @@ def generate_question_sequence(gen_fn, n: int, max_attempts: int = 50) -> list:
 
 
 def fading_scaffold(scaffold_html: str, seconds_remaining: float, key: str):
-    """Render scaffold HTML that hides itself client-side after `seconds_remaining`."""
+    """Render the scaffold as a normal part of the page (so it's always in
+    sync with the current question — an iframe's srcdoc can lag a beat
+    behind a fast rerun, which previously let a stale scaffold from an
+    earlier question linger on screen). A tiny zero-height component then
+    reaches into the parent page to hide it after `seconds_remaining`."""
+    st.markdown(
+        f'<div id="scaf-{key}">{scaffold_html}</div>'
+        f'<div id="faded-{key}" style="display:none;color:#888;font-style:italic;'
+        f'text-align:center;padding:10px;">Scaffold hidden — try it from memory now.</div>',
+        unsafe_allow_html=True,
+    )
     components.html(
         f"""
-        <style>html,body{{background:#ffffff;margin:0;}}</style>
-        <div id="scaf-{key}">{scaffold_html}</div>
-        <div id="faded-{key}" style="display:none;color:#888;font-style:italic;
-             text-align:center;padding:10px;">Scaffold hidden — try it from memory now.</div>
         <script>
         setTimeout(function() {{
-            var s = document.getElementById("scaf-{key}");
-            var f = document.getElementById("faded-{key}");
+            var doc = window.parent.document;
+            var s = doc.getElementById("scaf-{key}");
+            var f = doc.getElementById("faded-{key}");
             if (s) s.style.display = "none";
             if (f) f.style.display = "block";
         }}, {max(0, int(seconds_remaining * 1000))});
         </script>
         """,
-        height=340,
-        scrolling=True,
+        height=0,
     )
 
 
