@@ -191,28 +191,29 @@ def double_frame(n: int, note: str | None = None) -> str:
 
 
 # ---------------------------------------------------------------- dienes blocks
+_DIENES_UNIT = 18  # a ten-rod is exactly 10 of these squares laid end to end
+
+
 def _dienes_row(n: int) -> str:
     tens, ones = divmod(n, 10)
+    u = _DIENES_UNIT
     rod = (
-        '<svg width="22" height="92" viewBox="0 0 22 92">'
-        '<rect x="1" y="1" width="20" height="90" rx="2" fill="#4a90d9" stroke="#2c5d8a"/>'
-        + "".join(f'<line x1="1" y1="{1+9*i}" x2="21" y2="{1+9*i}" stroke="#ffffff"/>' for i in range(1, 10))
+        f'<svg width="{u*10+2}" height="{u+2}" viewBox="0 0 {u*10+2} {u+2}">'
+        f'<rect x="1" y="1" width="{u*10}" height="{u}" rx="2" fill="#4a90d9" stroke="#2c5d8a"/>'
+        + "".join(f'<line x1="{1+u*i}" y1="1" x2="{1+u*i}" y2="{u+1}" stroke="#ffffff"/>' for i in range(1, 10))
         + "</svg>"
     )
     cube = (
-        '<svg width="22" height="22" viewBox="0 0 22 22">'
-        '<rect x="1" y="1" width="20" height="20" rx="2" fill="#f2a541" stroke="#b9740a"/>'
+        f'<svg width="{u+2}" height="{u+2}" viewBox="0 0 {u+2} {u+2}">'
+        f'<rect x="1" y="1" width="{u}" height="{u}" rx="2" fill="#f2a541" stroke="#b9740a"/>'
         "</svg>"
     )
-    rods_html = "".join(rod for _ in range(tens))
-    cubes_html = ""
+    rods_html = "".join(f'<div>{rod}</div>' for _ in range(tens))
+    ones_html = ""
     if ones:
         cells = "".join(cube for _ in range(ones))
-        cubes_html = f'<div style="display:grid;grid-template-columns:repeat(5,22px);gap:3px;">{cells}</div>'
-    return (
-        '<div style="display:flex;align-items:flex-end;gap:6px;">'
-        f'<div style="display:flex;gap:4px;">{rods_html}</div>{cubes_html}</div>'
-    )
+        ones_html = f'<div style="display:flex;gap:2px;margin-top:4px;">{cells}</div>'
+    return f'<div style="display:flex;flex-direction:column;gap:3px;">{rods_html}{ones_html}</div>'
 
 
 def double_dienes(n: int) -> str:
