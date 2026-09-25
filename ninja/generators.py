@@ -653,15 +653,29 @@ def ms_partition_single_digit() -> Question:
 def ms_partition_two_digit() -> Question:
     style = random.choice(["tens", "near"])
     if style == "tens":
-        tens = random.choice([20, 30, 40, 50, 60, 70, 80, 90])
+        tens = random.choice([10, 20, 30, 40, 50, 60, 70, 80, 90])
         ones = random.randint(1, 9)
         total = tens + ones
-        scaffold = sc.place_value_grid(f"{tens+ones}", ["T", "U"], highlight=1, note="Split into tens and units.")
+        kinds = ["number_line", "dienes"]
+        if total <= 50:
+            kinds.append("ten_frames")
+        kind = random.choice(kinds)
+        if kind == "number_line":
+            scaffold = sc.number_line(0, total + 5, jumps=[(tens, total, "+?", True)], circle=tens)
+        elif kind == "dienes":
+            scaffold = sc.dienes_partition_tens(tens, ones)
+        else:
+            scaffold = sc.ten_frames_multi(tens, total)
         return Question(f"{total} = {tens} + ☐", str(ones), numeric_check(ones), scaffold)
+
     total = random.randint(11, 99)
     part = total - random.randint(1, 3)
     ans = total - part
-    scaffold = sc.ten_frame_pair(min(part, 10), min(total, 10), note="Think about how close the part is to the whole.")
+    kind = random.choice(["number_line", "dienes"])
+    if kind == "number_line":
+        scaffold = sc.number_line(max(0, part - 3), total + 3, jumps=[(part, total, "+?", True)], circle=total)
+    else:
+        scaffold = sc.dienes_partition_near(part, ans)
     return Question(f"{total} = {part} + ☐", str(ans), numeric_check(ans), scaffold)
 
 

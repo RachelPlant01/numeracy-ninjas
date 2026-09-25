@@ -161,6 +161,39 @@ def ten_frame_pair(known: int, total: int, note: str | None = None) -> str:
     return _wrap(inner, note)
 
 
+def ten_frames_multi(known: int, total: int) -> str:
+    """As many ten-frames as needed to hold `total`, filled solid up to
+    `known` and then dashed (countable) the rest of the way — a multi-frame
+    version of ten_frame_pair for totals bigger than 20, so a two-digit
+    number doesn't get silently clipped to a single frame."""
+    n_frames = max(1, math.ceil(total / 10))
+
+    def one_frame(base: int) -> str:
+        cells = []
+        for i in range(10):
+            g = base + i
+            if g < known:
+                dot = '<circle cx="19" cy="19" r="13" fill="#111"/>'
+            elif g < total:
+                dot = '<circle cx="19" cy="19" r="13" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="3,3"/>'
+            else:
+                dot = ""
+            cells.append(
+                f'<div style="width:38px;height:38px;border:1px solid #333;'
+                f'display:flex;align-items:center;justify-content:center;">'
+                f'<svg width="38" height="38">{dot}</svg></div>'
+            )
+        row0, row1 = "".join(cells[0:5]), "".join(cells[5:10])
+        return (
+            f'<div style="display:inline-grid;grid-template-columns:repeat(5,38px);'
+            f'grid-template-rows:repeat(2,38px);width:190px;">{row0}{row1}</div>'
+        )
+
+    frames = "".join(one_frame(f * 10) for f in range(n_frames))
+    inner = f'<div style="display:flex;gap:10px;flex-wrap:wrap;">{frames}</div>'
+    return _wrap(inner)
+
+
 def double_frame(n: int, note: str | None = None) -> str:
     """A single ten-frame (5 columns, 2 rows). The top row holds `n` solid
     dots; the bottom row holds `n` greyed-out dots directly underneath —
@@ -244,6 +277,17 @@ def _dienes_split_cube() -> str:
         f'<rect x="1" y="1" width="{half}" height="{u}" fill="#f2a541" stroke="#b9740a"/>'
         f'<rect x="{1+half}" y="1" width="{half}" height="{u}" fill="none" stroke="#b9740a"/>'
         f'<line x1="{1+half}" y1="0" x2="{1+half}" y2="{u+2}" stroke="#333" stroke-width="2" stroke-dasharray="3,2"/>'
+        "</svg>"
+    )
+
+
+def _dienes_cube_dashed() -> str:
+    """A hollow, dashed unit cube — for a count that's there to be worked
+    out (and counted) rather than one that's already known."""
+    u = _DIENES_UNIT
+    return (
+        f'<svg width="{u+2}" height="{u+2}" viewBox="0 0 {u+2} {u+2}">'
+        f'<rect x="1" y="1" width="{u}" height="{u}" rx="2" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="3,3"/>'
         "</svg>"
     )
 
@@ -389,6 +433,40 @@ def halving_dienes(n: int) -> str:
 
     half = one_half()
     inner = f'<div style="display:flex;flex-direction:column;gap:16px;">{half}{half}</div>'
+    return _wrap(inner)
+
+
+def _dienes_cube_row(cells: list[str]) -> str:
+    if not cells:
+        return ""
+    first = "".join(cells[:5])
+    groups = [f'<div style="display:flex;gap:2px;">{first}</div>']
+    if len(cells) > 5:
+        groups.append(f'<div style="display:flex;gap:2px;">{"".join(cells[5:])}</div>')
+    return f'<div style="display:flex;gap:10px;margin-top:4px;">{"".join(groups)}</div>'
+
+
+def dienes_partition_tens(tens_value: int, ones_value: int) -> str:
+    """`tens_value`'s ten-rods, built solid (the given part), with
+    `ones_value` hollow dashed cubes underneath standing in for the not-yet
+    -found ones part — countable, like the ten-frame's dashed dots
+    elsewhere, rather than an opaque placeholder."""
+    rods = tens_value // 10
+    rods_html = "".join(f'<div>{_dienes_rod()}</div>' for _ in range(rods))
+    cubes_html = _dienes_cube_row([_dienes_cube_dashed() for _ in range(ones_value)])
+    inner = f'<div style="display:flex;flex-direction:column;gap:3px;">{rods_html}{cubes_html}</div>'
+    return _wrap(inner)
+
+
+def dienes_partition_near(part: int, extra: int) -> str:
+    """`part`'s base-ten blocks, built solid, with `extra` hollow dashed
+    cubes tacked on — showing how many more (countable) reach the total,
+    for a part that's only a small step away from it."""
+    tens, ones = divmod(part, 10)
+    rods_html = "".join(f'<div>{_dienes_rod()}</div>' for _ in range(tens))
+    cells = [_dienes_cube() for _ in range(ones)] + [_dienes_cube_dashed() for _ in range(extra)]
+    cubes_html = _dienes_cube_row(cells)
+    inner = f'<div style="display:flex;flex-direction:column;gap:3px;">{rods_html}{cubes_html}</div>'
     return _wrap(inner)
 
 
