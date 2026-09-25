@@ -211,6 +211,20 @@ def _dienes_rod(segments: int = 10, cut: bool = False) -> str:
     return "".join(svg)
 
 
+def _dienes_rod_greyed() -> str:
+    """A ten-rod drawn hollow and dashed, for the part of a number that's
+    being taken away rather than kept."""
+    u = _DIENES_UNIT
+    w = u * 10
+    svg = [
+        f'<svg width="{w+2}" height="{u+2}" viewBox="0 0 {w+2} {u+2}">',
+        f'<rect x="1" y="1" width="{w}" height="{u}" rx="2" fill="#e4e4e4" stroke="#999" stroke-width="1.5" stroke-dasharray="4,3"/>',
+    ]
+    svg += [f'<line x1="{1+u*i}" y1="1" x2="{1+u*i}" y2="{u+1}" stroke="#ffffff"/>' for i in range(1, 10)]
+    svg.append("</svg>")
+    return "".join(svg)
+
+
 def _dienes_cube() -> str:
     u = _DIENES_UNIT
     return (
@@ -311,6 +325,37 @@ def dienes_add_tens(n: int, m: int) -> str:
     top = _dienes_full(n)
     bottom = _dienes_full(m)
     inner = f'<div style="display:flex;flex-direction:column;gap:16px;">{top}{bottom}</div>'
+    return _wrap(inner)
+
+
+def dienes_subtract_tens(n: int, m: int) -> str:
+    """`n` built in base-ten blocks, with the `m` worth of ten-rods being
+    taken away drawn hollow and dashed instead of removed outright — so
+    the whole starting number stays visible, with the part that's leaving
+    clearly marked. `m` must be a multiple of ten no larger than n's tens
+    digit alone, so a hundred-flat is never partially greyed."""
+    hundreds, rem = divmod(n, 100)
+    tens, ones = divmod(rem, 10)
+    grey_count = min(m // 10, tens)
+    keep_count = tens - grey_count
+
+    parts = []
+    if hundreds:
+        flats = "".join(f'<div>{_dienes_hundred_flat()}</div>' for _ in range(hundreds))
+        parts.append(f'<div style="display:flex;gap:6px;flex-wrap:wrap;">{flats}</div>')
+    if tens:
+        rods = [f'<div>{_dienes_rod()}</div>' for _ in range(keep_count)]
+        rods += [f'<div>{_dienes_rod_greyed()}</div>' for _ in range(grey_count)]
+        parts.append(f'<div style="display:flex;flex-direction:column;gap:3px;">{"".join(rods)}</div>')
+    if ones:
+        cube = _dienes_cube()
+        first_group = "".join(cube for _ in range(min(ones, 5)))
+        groups = [f'<div style="display:flex;gap:2px;">{first_group}</div>']
+        if ones > 5:
+            groups.append(f'<div style="display:flex;gap:2px;">{"".join(cube for _ in range(ones - 5))}</div>')
+        parts.append(f'<div style="display:flex;gap:10px;">{"".join(groups)}</div>')
+
+    inner = f'<div style="display:flex;flex-direction:column;gap:8px;">{"".join(parts)}</div>'
     return _wrap(inner)
 
 

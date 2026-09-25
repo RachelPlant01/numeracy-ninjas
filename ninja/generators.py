@@ -612,10 +612,13 @@ def ms_add_multiples_of_10() -> Question:
 
 
 def ms_subtract_multiples_of_10() -> Question:
-    m = random.choice([10, 20, 30, 40, 50, 60, 70, 80, 90]) * random.randint(1, 3)
-    n = random.randint(m + 1, m + 500)
+    hundreds = random.choice([0, 0, 0, 1])
+    tens_digit = random.randint(1, 9)
+    ones = random.randint(0, 9)
+    n = hundreds * 100 + tens_digit * 10 + ones
+    m = random.randint(1, tens_digit) * 10
     ans = n - m
-    scaffold = sc.hint_list([f"Only the tens (and hundreds) change — subtract {m} from the tens part of {n}."])
+    scaffold = sc.dienes_subtract_tens(n, m)
     return Question(f"{n} − {m}", str(ans), numeric_check(ans), scaffold)
 
 
