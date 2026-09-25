@@ -604,10 +604,10 @@ def ms_subtract_10() -> Question:
 
 
 def ms_add_multiples_of_10() -> Question:
-    n = random.randint(1, 800)
-    m = random.choice([10, 20, 30, 40, 50, 60, 70, 80, 90, 100]) * random.randint(1, 5)
+    n = random.randint(1, 150)
+    m = random.choice([10, 20, 30, 40, 50, 60, 70, 80, 90])
     ans = n + m
-    scaffold = sc.hint_list([f"Only the tens (and hundreds) change — add {m} to the tens part of {n}."])
+    scaffold = sc.dienes_add_tens(n, m)
     return Question(f"{n} + {m}", str(ans), numeric_check(ans), scaffold)
 
 

@@ -234,6 +234,22 @@ def _dienes_split_cube() -> str:
     )
 
 
+def _dienes_hundred_flat() -> str:
+    """A 10x10 flat — ten ten-rods fused into a square — for when ten rods
+    are grouped together as a hundred."""
+    u = _DIENES_UNIT
+    w = u * 10
+    lines = []
+    for i in range(1, 10):
+        lines.append(f'<line x1="{1+u*i}" y1="1" x2="{1+u*i}" y2="{w+1}" stroke="#ffffff"/>')
+        lines.append(f'<line x1="1" y1="{1+u*i}" x2="{w+1}" y2="{1+u*i}" stroke="#ffffff"/>')
+    return (
+        f'<svg width="{w+2}" height="{w+2}" viewBox="0 0 {w+2} {w+2}">'
+        f'<rect x="1" y="1" width="{w}" height="{w}" rx="2" fill="#5cb85c" stroke="#3d8b3d"/>'
+        + "".join(lines) + "</svg>"
+    )
+
+
 def _dienes_row(n: int) -> str:
     tens, ones = divmod(n, 10)
     rod = _dienes_rod()
@@ -252,6 +268,31 @@ def _dienes_row(n: int) -> str:
     return f'<div style="display:flex;flex-direction:column;gap:3px;">{rods_html}{ones_html}</div>'
 
 
+def _dienes_full(n: int) -> str:
+    """Base-ten blocks for any `n`, with every ten ten-rods regrouped into
+    a hundred-flat — so a number that crosses 100 reads as flats + rods +
+    cubes instead of an unwieldy run of loose rods."""
+    hundreds, rem = divmod(n, 100)
+    tens, ones = divmod(rem, 10)
+    parts = []
+    if hundreds:
+        flats = "".join(f'<div>{_dienes_hundred_flat()}</div>' for _ in range(hundreds))
+        parts.append(f'<div style="display:flex;gap:6px;flex-wrap:wrap;">{flats}</div>')
+    if tens:
+        rods = "".join(f'<div>{_dienes_rod()}</div>' for _ in range(tens))
+        parts.append(f'<div style="display:flex;flex-direction:column;gap:3px;">{rods}</div>')
+    if ones:
+        cube = _dienes_cube()
+        first_group = "".join(cube for _ in range(min(ones, 5)))
+        groups = [f'<div style="display:flex;gap:2px;">{first_group}</div>']
+        if ones > 5:
+            groups.append(f'<div style="display:flex;gap:2px;">{"".join(cube for _ in range(ones - 5))}</div>')
+        parts.append(f'<div style="display:flex;gap:10px;">{"".join(groups)}</div>')
+    if not parts:
+        parts.append("<div></div>")
+    return f'<div style="display:flex;flex-direction:column;gap:8px;">{"".join(parts)}</div>'
+
+
 def double_dienes(n: int) -> str:
     """Base-ten (Dienes) blocks for a two-digit number, with a second,
     identical set of blocks directly underneath — no caption, just the two
@@ -259,6 +300,17 @@ def double_dienes(n: int) -> str:
     again"."""
     row = _dienes_row(n)
     inner = f'<div style="display:flex;flex-direction:column;gap:16px;">{row}{row}</div>'
+    return _wrap(inner)
+
+
+def dienes_add_tens(n: int, m: int) -> str:
+    """`n`'s base-ten blocks, then `m`'s (a multiple of ten, so rods only)
+    stacked directly underneath — each regrouped into hundred-flats where
+    it has ten or more ten-rods, so crossing 100 is shown as a flat rather
+    than an unwieldy row of loose rods."""
+    top = _dienes_full(n)
+    bottom = _dienes_full(m)
+    inner = f'<div style="display:flex;flex-direction:column;gap:16px;">{top}{bottom}</div>'
     return _wrap(inner)
 
 
