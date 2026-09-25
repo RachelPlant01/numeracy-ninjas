@@ -637,8 +637,7 @@ def ms_add_near_doubles() -> Question:
     diff = random.choice([-2, -1, 1, 2])
     b = a + diff
     ans = a + b
-    near = a * 2
-    scaffold = sc.hint_list([f"This is close to double {a} ({a} + {a} = {near}).", f"Adjust by {diff:+d} to compensate."])
+    scaffold = sc.near_doubles_bars(a, b)
     return Question(f"{a} + {b}", str(ans), numeric_check(ans), scaffold)
 
 

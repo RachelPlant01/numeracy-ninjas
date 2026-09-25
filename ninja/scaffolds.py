@@ -447,6 +447,44 @@ def bar_model(whole_label: str, parts: list[tuple[str, float]], note: str | None
     return _wrap(f'<div style="display:flex;flex-direction:column;gap:4px;">{top}{bottom}</div>', note)
 
 
+# ------------------------------------------------------------ near doubles
+def near_doubles_bars(a: int, b: int) -> str:
+    """Two bars, drawn to scale and lined up on the left, for the two
+    numbers being added. The shorter one is plain; the longer one is the
+    same length plus a highlighted, labelled extra bit — so it reads as
+    "these are almost the same, except for this much" rather than two
+    unrelated numbers, supporting the double-and-adjust strategy."""
+    lo, hi = min(a, b), max(a, b)
+    diff = hi - lo
+    scale = 7
+    bar_h = 30
+    pad_top = 20
+
+    def make_bar(total_units: int, highlight_units: int, label: str) -> str:
+        width = max(total_units * scale, 1)
+        base_w = (total_units - highlight_units) * scale
+        parts = [f'<svg width="{width}" height="{bar_h + pad_top}" viewBox="0 0 {width} {bar_h + pad_top}">']
+        parts.append(f'<rect x="0" y="{pad_top}" width="{base_w}" height="{bar_h}" fill="#4a90d9" stroke="#2c5d8a"/>')
+        if highlight_units:
+            hl_w = highlight_units * scale
+            parts.append(f'<rect x="{base_w}" y="{pad_top}" width="{hl_w}" height="{bar_h}" fill="#e74c3c" stroke="#a72d1d"/>')
+            parts.append(
+                f'<text x="{base_w + hl_w / 2}" y="{pad_top - 6}" text-anchor="middle" font-size="12" '
+                f'fill="#a72d1d" font-weight="bold">+{highlight_units}</text>'
+            )
+        parts.append(
+            f'<text x="{width / 2}" y="{pad_top + bar_h / 2 + 5}" text-anchor="middle" '
+            f'font-size="14" fill="#ffffff" font-weight="bold">{label}</text>'
+        )
+        parts.append("</svg>")
+        return "".join(parts)
+
+    bar_lo = make_bar(lo, 0, str(lo))
+    bar_hi = make_bar(hi, diff, str(hi))
+    inner = f'<div style="display:flex;flex-direction:column;gap:10px;">{bar_lo}{bar_hi}</div>'
+    return _wrap(inner)
+
+
 # ------------------------------------------------------------- place value grid
 def place_value_grid(number_str: str, headers: list[str], highlight: int | None = None, note: str | None = None) -> str:
     digits = list(number_str)
