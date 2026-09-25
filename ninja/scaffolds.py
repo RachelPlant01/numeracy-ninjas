@@ -11,8 +11,8 @@ import html
 
 
 CARD_STYLE = (
-    "border:2px solid #2b2b2b;border-radius:10px;padding:16px 20px;"
-    "background:#fafafa;margin:6px 0 18px 0;"
+    "border:2px solid #2b2b2b;border-radius:10px;padding:12px 20px;"
+    "background:#fafafa;margin:4px 0;box-sizing:border-box;"
 )
 
 

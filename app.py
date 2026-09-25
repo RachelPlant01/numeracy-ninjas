@@ -31,6 +31,10 @@ st.set_page_config(page_title="Numeracy Ninjas", page_icon="🥷", layout="cente
 
 CSS = """
 <style>
+.block-container {
+    padding-top: 3.2rem;
+    padding-bottom: 1rem;
+}
 .ninja-banner {
     background: #1c1c1c;
     color: #f4d35e;
@@ -47,11 +51,19 @@ CSS = """
     color:#666;
     margin-bottom:24px;
 }
+.quiz-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    color:#555;
+    font-size:0.95rem;
+    margin-bottom:2px;
+}
 .big-question {
-    font-size: 3.6rem;
+    font-size: 3.2rem;
     font-weight: 800;
     text-align: center;
-    margin: 22px 0 28px 0;
+    margin: 10px 0 10px 0;
     color: #1c1c1c !important;
     line-height: 1.2;
 }
@@ -95,32 +107,6 @@ def go(stage: str):
     st.session_state.stage = stage
 
 
-def stopwatch_component(start_time: float, key: str):
-    start_ms = int(start_time * 1000)
-    components.html(
-        f"""
-        <style>html,body{{background:#ffffff;margin:0;}}</style>
-        <div id="sw-{key}" style="font-size:1.6rem;font-weight:700;text-align:center;
-             color:#1c1c1c;font-family:monospace;margin-bottom:6px;background:#ffffff;">00:00.0</div>
-        <script>
-        const start = {start_ms};
-        const el = document.getElementById("sw-{key}");
-        function tick() {{
-            const elapsed = Date.now() - start;
-            const totalMs = Math.max(0, elapsed);
-            const mins = Math.floor(totalMs / 60000);
-            const secs = Math.floor((totalMs % 60000) / 1000);
-            const tenths = Math.floor((totalMs % 1000) / 100);
-            el.textContent = String(mins).padStart(2,'0') + ":" + String(secs).padStart(2,'0') + "." + tenths;
-        }}
-        setInterval(tick, 100);
-        tick();
-        </script>
-        """,
-        height=40,
-    )
-
-
 def fading_scaffold(scaffold_html: str, seconds_remaining: float, key: str):
     """Render scaffold HTML that hides itself client-side after `seconds_remaining`."""
     components.html(
@@ -138,7 +124,7 @@ def fading_scaffold(scaffold_html: str, seconds_remaining: float, key: str):
         }}, {max(0, int(seconds_remaining * 1000))});
         </script>
         """,
-        height=340,
+        height=190,
         scrolling=True,
     )
 
@@ -235,11 +221,12 @@ def render_quiz():
         st.rerun()
         return
 
-    banner()
     title, _fn = cat["skills"][st.session_state.skill_id]
-    st.caption(title)
-    st.progress(idx / n, text=f"Question {idx + 1} of {n}")
-    stopwatch_component(st.session_state.quiz_start_time, key="quiz")
+    st.markdown(
+        f'<div class="quiz-header"><span>🥷 {title}</span><span>Question {idx + 1} of {n}</span></div>',
+        unsafe_allow_html=True,
+    )
+    st.progress(idx / n)
 
     q = st.session_state.quiz_questions[idx]
     st.markdown(f'<div class="big-question">{q.prompt}</div>', unsafe_allow_html=True)
@@ -256,8 +243,14 @@ def render_quiz():
 
     if not st.session_state.awaiting_feedback:
         with st.form(key=f"answer_form_{idx}", clear_on_submit=False):
-            user_answer = st.text_input("Your answer", key=f"input_{idx}")
-            submitted = st.form_submit_button("Submit answer", type="primary", use_container_width=True)
+            col_input, col_btn = st.columns([3, 1])
+            with col_input:
+                user_answer = st.text_input(
+                    "Your answer", key=f"input_{idx}",
+                    placeholder="Type your answer…", label_visibility="collapsed",
+                )
+            with col_btn:
+                submitted = st.form_submit_button("Submit ▶", type="primary", use_container_width=True)
         if submitted:
             correct = q.checker(user_answer)
             st.session_state.quiz_results.append(correct)
