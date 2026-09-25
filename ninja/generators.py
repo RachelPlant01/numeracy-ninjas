@@ -547,7 +547,7 @@ def ms_number_bonds_to_100() -> Question:
 
 
 def ms_double_single_digit() -> Question:
-    n = random.randint(1, 9)
+    n = random.randint(1, 5)
     ans = n * 2
     scaffold = sc.double_frame(n, note=f"Double means {n} + {n}.")
     style = random.choice(["double", "plus"])

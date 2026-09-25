@@ -162,28 +162,31 @@ def ten_frame_pair(known: int, total: int, note: str | None = None) -> str:
 
 
 def double_frame(n: int, note: str | None = None) -> str:
-    """Two ten-frames, stacked, each filled with `n` solid dots in the usual
-    ten-frame reading order (top row of 5 first, then the row below) — so
-    doubling reads as "this ten-frame, and the same again" rather than one
-    long count."""
-
-    def one_ten_frame(count: int) -> str:
-        cells = []
-        for i in range(10):
-            dot = '<circle cx="19" cy="19" r="13" fill="#111"/>' if i < count else ""
-            cells.append(
-                '<div style="width:38px;height:38px;border:1px solid #333;'
-                'display:flex;align-items:center;justify-content:center;">'
-                f'<svg width="38" height="38">{dot}</svg></div>'
-            )
-        row0 = "".join(cells[0:5])
-        row1 = "".join(cells[5:10])
-        return (
-            '<div style="display:inline-grid;grid-template-columns:repeat(5,38px);'
-            f'grid-template-rows:repeat(2,38px);width:190px;">{row0}{row1}</div>'
+    """A single ten-frame (5 columns, 2 rows). The top row holds `n` solid
+    dots; the bottom row holds `n` greyed-out dots directly underneath —
+    same column, same count — so doubling reads as "this row, and the same
+    again below it" rather than a plain count. `n` must be 1-5 so both rows
+    fit within the frame's 5 columns."""
+    cells = []
+    for i in range(10):
+        row, col = divmod(i, 5)
+        if col < n and row == 0:
+            dot = '<circle cx="19" cy="19" r="13" fill="#111"/>'
+        elif col < n and row == 1:
+            dot = '<circle cx="19" cy="19" r="13" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="3,3"/>'
+        else:
+            dot = ""
+        cells.append(
+            '<div style="width:38px;height:38px;border:1px solid #333;'
+            'display:flex;align-items:center;justify-content:center;">'
+            f'<svg width="38" height="38">{dot}</svg></div>'
         )
-
-    inner = f'<div style="display:flex;flex-direction:column;gap:10px;">{one_ten_frame(n)}{one_ten_frame(n)}</div>'
+    row0 = "".join(cells[0:5])
+    row1 = "".join(cells[5:10])
+    inner = (
+        '<div style="display:inline-grid;grid-template-columns:repeat(5,38px);'
+        f'grid-template-rows:repeat(2,38px);width:190px;">{row0}{row1}</div>'
+    )
     return _wrap(inner, note)
 
 
