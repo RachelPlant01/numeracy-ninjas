@@ -597,9 +597,9 @@ def ms_add_10() -> Question:
 
 
 def ms_subtract_10() -> Question:
-    n = random.randint(20, 999)
+    n = random.randint(11, 100)
     ans = n - 10
-    scaffold = sc.hint_list(["Subtracting 10 only changes the tens digit — the units digit stays the same."])
+    scaffold = sc.hundred_square(n, ans)
     return Question(f"{n} − 10", str(ans), numeric_check(ans), scaffold)
 
 
