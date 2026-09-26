@@ -658,6 +658,62 @@ def hundred_square(a: int, b: int) -> str:
     return _wrap(grid)
 
 
+# ------------------------------------------------------------ elapsed time
+def elapsed_time_line(stops: list[tuple[int, int]], jump_labels: list[str]) -> str:
+    """A "counting up" number line for elapsed time: `stops` are (hour24,
+    minute) landmarks in order — start time, then each friendly waypoint
+    (a round number of minutes, or the top of the hour), then the end
+    time — joined by arced jumps labelled with `jump_labels` (one fewer
+    than `stops`). Ticks are spaced evenly rather than to scale, matching
+    how this strategy is normally drawn by hand."""
+    n = len(stops)
+    width = max(560, 130 * (n - 1) + 80)
+    pad = 60
+    usable = width - 2 * pad
+    step_x = usable / max(1, n - 1)
+    height = 150
+    y_line = height - 40
+
+    def fmt(h: int, m: int) -> str:
+        h12 = h % 12
+        if h12 == 0:
+            h12 = 12
+        suffix = "am" if h < 12 else "pm"
+        return f"{h12}:{m:02d} {suffix}"
+
+    svg = [
+        f'<svg viewBox="0 0 {width} {height}" width="100%" height="{height}" '
+        f'xmlns="http://www.w3.org/2000/svg" font-family="inherit">',
+        f'<line x1="{pad}" y1="{y_line}" x2="{width - pad}" y2="{y_line}" '
+        f'stroke="#222" stroke-width="2" marker-end="url(#arrow)"/>',
+        '<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="4" refY="4" '
+        'orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#222"/></marker></defs>',
+    ]
+    xs = [pad + i * step_x for i in range(n)]
+    for (h, m), xv in zip(stops, xs):
+        svg.append(f'<line x1="{xv}" y1="{y_line - 9}" x2="{xv}" y2="{y_line + 9}" stroke="#222" stroke-width="2.5"/>')
+        svg.append(
+            f'<text x="{xv}" y="{y_line + 28}" text-anchor="middle" font-size="14" '
+            f'font-weight="bold" fill="#222">{html.escape(fmt(h, m))}</text>'
+        )
+    colors = ["#2e6da4", "#c0392b", "#27ae60", "#8e44ad", "#d18a1b"]
+    for i, label in enumerate(jump_labels):
+        xa, xb = xs[i], xs[i + 1]
+        mid = (xa + xb) / 2
+        color = colors[i % len(colors)]
+        arc_h = 34
+        svg.append(
+            f'<path d="M{xa},{y_line} Q{mid},{y_line - arc_h} {xb},{y_line}" '
+            f'fill="none" stroke="{color}" stroke-width="2.5" marker-end="url(#arrow)"/>'
+        )
+        svg.append(
+            f'<text x="{mid}" y="{y_line - arc_h - 6}" text-anchor="middle" font-size="13" '
+            f'fill="{color}" font-weight="bold">{html.escape(label)}</text>'
+        )
+    svg.append("</svg>")
+    return _wrap("".join(svg))
+
+
 # --------------------------------------------------------------------- clock
 def clock_face(hour24: int, minute: int, note: str | None = None) -> str:
     hour = hour24 % 12

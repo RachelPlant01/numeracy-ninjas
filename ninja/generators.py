@@ -810,6 +810,43 @@ def ms_minutes_to_past() -> Question:
     return Question(prompt, str(diff), numeric_check(diff), scaffold)
 
 
+def ms_elapsed_time() -> Question:
+    h1 = random.randint(0, 22)
+    m1 = random.randint(0, 59)
+    diff = random.randint(12, 55)
+    t1 = h1 * 60 + m1
+    t2 = t1 + diff
+
+    def as_time(t: int) -> tuple[int, int]:
+        return (t // 60) % 24, t % 60
+
+    cur = t1
+    stops = [as_time(cur)]
+    jump_labels: list[str] = []
+
+    if cur % 10 != 0:
+        nxt = min(((cur // 10) + 1) * 10, t2)
+        if nxt > cur:
+            jump_labels.append(f"+{nxt - cur} min")
+            cur = nxt
+            stops.append(as_time(cur))
+
+    while t2 - cur >= 10:
+        cur += 10
+        jump_labels.append("+10 min")
+        stops.append(as_time(cur))
+
+    if t2 - cur > 0:
+        jump_labels.append(f"+{t2 - cur} min")
+        cur = t2
+        stops.append(as_time(cur))
+
+    h2, m2 = as_time(t2)
+    prompt = f"From {h1:02d}:{m1:02d} to {h2:02d}:{m2:02d} is ☐ minutes elapsed."
+    scaffold = sc.elapsed_time_line(stops, jump_labels)
+    return Question(prompt, str(diff), numeric_check(diff), scaffold)
+
+
 MENTAL_STRATEGIES: dict[str, tuple[str, callable]] = {
     "MS1": ("Number bonds to 5", ms_number_bonds_to_5),
     "MS2": ("Number bonds to 10", ms_number_bonds_to_10),
@@ -836,4 +873,5 @@ MENTAL_STRATEGIES: dict[str, tuple[str, callable]] = {
     "MS23": ("Equivalent calculations to make an addition easier", ms_equivalent_calc_addition),
     "MS25": ("24 hour clock", ms_24_hour_clock),
     "MS26": ("How many minutes to/past a time?", ms_minutes_to_past),
+    "MS27": ("Elapsed time", ms_elapsed_time),
 }
