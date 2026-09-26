@@ -80,8 +80,18 @@ def number_line(
         'orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#222"/></marker></defs>'
     )
     step = 1 if n <= 20 else max(1, n // 20)
+    tick_values = set()
     v = min_v
     while v <= max_v:
+        tick_values.add(v)
+        v += step
+    # `circle`/`hide_value` mark a specific value that must be visible no
+    # matter where it falls — inject it as an extra tick if the regular
+    # step would otherwise skip straight past it.
+    for special in (circle, hide_value):
+        if special is not None and min_v <= special <= max_v:
+            tick_values.add(special)
+    for v in sorted(tick_values):
         xv = x(v)
         on5 = v % 5 == 0
         tick_h = 9 if on5 else 6
@@ -491,6 +501,21 @@ def dienes_partition_tens(tens_value: int, ones_value: int) -> str:
     rods_html = "".join(f'<div>{_dienes_rod()}</div>' for _ in range(rods))
     cubes_html = _dienes_cube_row([_dienes_cube_dashed() for _ in range(ones_value)])
     inner = f'<div style="display:flex;flex-direction:column;gap:3px;">{rods_html}{cubes_html}</div>'
+    return _wrap(inner)
+
+
+def dienes_partition_pair(a_tens: int, a_ones: int, b_tens: int, b_ones: int) -> str:
+    """Two base-ten block rows stacked, one per addend — each built as
+    solid ten-rods (the rounded-down tens) with that addend's leftover
+    ones drawn as hollow dashed cubes underneath. Seeing both rows lets a
+    pupil combine the two dashed groups to find the leftover to add back."""
+    def one_number(tens: int, ones: int) -> str:
+        rods_html = "".join(f'<div>{_dienes_rod()}</div>' for _ in range(tens // 10))
+        cubes_html = _dienes_cube_row([_dienes_cube_dashed() for _ in range(ones)])
+        return f'<div style="display:flex;flex-direction:column;gap:3px;">{rods_html}{cubes_html}</div>'
+
+    row_a, row_b = one_number(a_tens, a_ones), one_number(b_tens, b_ones)
+    inner = f'<div style="display:flex;flex-direction:column;gap:16px;">{row_a}{row_b}</div>'
     return _wrap(inner)
 
 

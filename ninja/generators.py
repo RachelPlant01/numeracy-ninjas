@@ -751,7 +751,18 @@ def ms_equivalent_calc_addition() -> Question:
     a_rem = a - a_round
     b_rem = b - b_round
     ans = a_rem + b_rem
-    scaffold = sc.hint_list([f"Round each number down to its tens: {a}→{a_round}, {b}→{b_round}.", "Add the leftover units back on at the end."])
+    total = a + b
+    kind = random.choice(["dienes", "number_line", "bar_model"])
+    if kind == "dienes":
+        scaffold = sc.dienes_partition_pair(a_round, a_rem, b_round, b_rem)
+    elif kind == "number_line":
+        scaffold = sc.number_line(
+            a_round - 2, total + 3,
+            jumps=[(a_round, a_round + b_round, f"+{b_round}", False), (a_round + b_round, total, "+?", True)],
+            circle=a_round, hide_value=total,
+        )
+    else:
+        scaffold = sc.bar_model(f"{a} + {b}", [(str(a_round), a_round), (str(b_round), b_round), ("?", max(ans, 1))])
     return Question(f"{a} + {b} = {a_round} + {b_round} + ☐", str(ans), numeric_check(ans), scaffold)
 
 
