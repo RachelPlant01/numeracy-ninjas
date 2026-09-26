@@ -106,11 +106,8 @@ def ks_subtract_whole_numbers() -> Question:
     a = random.randint(1000, 9800)
     b = random.randint(200, a - 100)
     ans = a - b
-    scaffold = sc.hint_list([
-        f"Line up {a} and {b} by place value (units under units).",
-        "Subtract column by column, starting with the units.",
-        "Exchange (borrow) from the next column if you need to.",
-    ])
+    demo_a, demo_b = (532, 178) if (a, b) != (532, 178) else (641, 275)
+    scaffold = sc.column_subtraction(a, b, demo_a, demo_b)
     return Question(f"{a} - {b} =", str(ans), numeric_check(ans), scaffold)
 
 

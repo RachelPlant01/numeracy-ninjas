@@ -715,6 +715,92 @@ def column_addition(a: int, b: int, demo_a: int, demo_b: int) -> str:
     return _wrap(inner)
 
 
+def _chimney_subtract_svg(a: int, b: int, fill: bool) -> str:
+    """A "chimney sum" for subtraction: `a` and `b` stacked right-
+    aligned with a `-` to the left and a line beneath. When `fill` is
+    False the space below the line is left blank; when True the
+    difference is worked out column by column, showing an exchange
+    (borrow) the way it's written by hand — the lending column's digit
+    struck through with the reduced value above it, and a small "1"
+    above the column that borrowed the ten."""
+    n = len(str(a))
+    a_pad, b_pad = str(a).rjust(n), str(b).rjust(n)
+    cell_w, row_h = 32, 36
+    plus_pad = 34
+    note_h = 26 if fill else 0
+
+    width = plus_pad + n * cell_w + 10
+    height = note_h + 3 * row_h + 12
+    x0 = plus_pad
+    y_a = note_h + row_h - 8
+    y_b = note_h + 2 * row_h - 8
+    y_line = note_h + 2 * row_h + 6
+    y_sum = y_line + row_h - 6
+
+    def col_x(i: int) -> float:
+        return x0 + i * cell_w + cell_w / 2
+
+    svg = [
+        f'<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" '
+        f'xmlns="http://www.w3.org/2000/svg" font-family="inherit">'
+    ]
+
+    borrowed_in = [0] * n
+    borrowed_out = [0] * n
+    diffs = [0] * n
+    if fill:
+        borrow = 0
+        for i in range(n - 1, -1, -1):
+            borrowed_in[i] = borrow
+            ad = int(a_pad[i]) - borrow
+            bd = int(b_pad[i]) if b_pad[i] != " " else 0
+            if ad < bd:
+                ad += 10
+                borrowed_out[i] = 1
+            diffs[i] = ad - bd
+            borrow = borrowed_out[i]
+
+    for i, ch in enumerate(a_pad):
+        if ch == " ":
+            continue
+        x = col_x(i)
+        svg.append(f'<text x="{x}" y="{y_a}" text-anchor="middle" font-size="22" font-weight="bold" fill="#222">{ch}</text>')
+        if fill and borrowed_in[i]:
+            svg.append(f'<line x1="{x - 9}" y1="{y_a + 6}" x2="{x + 9}" y2="{y_a - 16}" stroke="#c0392b" stroke-width="1.5"/>')
+            svg.append(f'<text x="{x + 9}" y="{y_a - 18}" text-anchor="middle" font-size="13" fill="#c0392b">{int(ch) - 1}</text>')
+        if fill and borrowed_out[i]:
+            svg.append(f'<text x="{x - 10}" y="{y_a - 18}" text-anchor="middle" font-size="13" fill="#c0392b">1</text>')
+
+    for i, ch in enumerate(b_pad):
+        if ch != " ":
+            svg.append(f'<text x="{col_x(i)}" y="{y_b}" text-anchor="middle" font-size="22" font-weight="bold" fill="#222">{ch}</text>')
+    svg.append(f'<text x="{x0 - 20}" y="{y_b}" text-anchor="middle" font-size="22" font-weight="bold" fill="#222">-</text>')
+    svg.append(f'<line x1="{x0 - 6}" y1="{y_line}" x2="{x0 + n * cell_w}" y2="{y_line}" stroke="#222" stroke-width="2.5"/>')
+
+    if fill:
+        for i in range(n):
+            svg.append(f'<text x="{col_x(i)}" y="{y_sum}" text-anchor="middle" font-size="22" font-weight="bold" fill="#2e6da4">{diffs[i]}</text>')
+
+    svg.append("</svg>")
+    return "".join(svg)
+
+
+def column_subtraction(a: int, b: int, demo_a: int, demo_b: int) -> str:
+    """The question's chimney sum for subtraction (blank, ready to fill
+    in), set well apart from a fully worked example of a different
+    subtraction that exchanges (borrows) at least once — the same
+    side-by-side layout used for the other written-method scaffolds."""
+    blank = _chimney_subtract_svg(a, b, fill=False)
+    demo = _chimney_subtract_svg(demo_a, demo_b, fill=True)
+    inner = (
+        f'<div style="display:flex;align-items:flex-start;flex-wrap:wrap;">'
+        f'<div>{blank}</div>'
+        f'<div style="margin-left:90px;padding-left:24px;border-left:2px dashed #ccc;">{demo}</div>'
+        f'</div>'
+    )
+    return _wrap(inner)
+
+
 # ------------------------------------------------------ bus stop division
 def _bus_stop_svg(dividend: int, divisor: int, fill: bool) -> str:
     """A bus-stop (short) division layout: the divisor to the left of a
