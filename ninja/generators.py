@@ -97,10 +97,8 @@ def ks_add_whole_numbers() -> Question:
     a = random.randint(200, 9500)
     b = random.randint(200, 9500)
     ans = a + b
-    scaffold = sc.place_value_grid(
-        _fmt(max(a, b)).rjust(4, " "), ["Th", "H", "T", "U"],
-        note="Line up the place-value columns, then add starting from the units.",
-    )
+    demo_a, demo_b = (267, 485) if (a, b) != (267, 485) else (356, 476)
+    scaffold = sc.column_addition(a, b, demo_a, demo_b)
     return Question(f"{a} + {b} =", str(ans), numeric_check(ans), scaffold)
 
 

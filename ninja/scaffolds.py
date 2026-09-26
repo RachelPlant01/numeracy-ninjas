@@ -637,6 +637,84 @@ def place_value_grid(number_str: str, headers: list[str], highlight: int | None 
     return _wrap(grid_h + grid_d, note)
 
 
+# --------------------------------------------------------- column addition
+def _chimney_svg(a: int, b: int, fill: bool) -> str:
+    """A "chimney sum": `a` and `b` stacked right-aligned with a `+` to
+    the left and a line beneath, wide enough for any carried extra
+    digit. When `fill` is False the space below the line is left blank
+    for the pupil to write the total in; when True the total is worked
+    out column by column, with any carry shown as a small digit above
+    the column it was carried into."""
+    a_str, b_str = str(a), str(b)
+    total = a + b
+    n = len(str(total))
+    cell_w, row_h = 32, 36
+    plus_pad = 34
+    carry_h = 22 if fill else 0
+
+    width = plus_pad + n * cell_w + 10
+    height = carry_h + 3 * row_h + 12
+    x0 = plus_pad
+
+    y_carry = carry_h - 6
+    y_a = carry_h + row_h - 8
+    y_b = carry_h + 2 * row_h - 8
+    y_line = carry_h + 2 * row_h + 6
+    y_sum = y_line + row_h - 6
+
+    def col_x(i: int) -> float:
+        return x0 + i * cell_w + cell_w / 2
+
+    svg = [
+        f'<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" '
+        f'xmlns="http://www.w3.org/2000/svg" font-family="inherit">'
+    ]
+    a_pad, b_pad = a_str.rjust(n), b_str.rjust(n)
+    for i, ch in enumerate(a_pad):
+        if ch != " ":
+            svg.append(f'<text x="{col_x(i)}" y="{y_a}" text-anchor="middle" font-size="22" font-weight="bold" fill="#222">{ch}</text>')
+    for i, ch in enumerate(b_pad):
+        if ch != " ":
+            svg.append(f'<text x="{col_x(i)}" y="{y_b}" text-anchor="middle" font-size="22" font-weight="bold" fill="#222">{ch}</text>')
+    svg.append(f'<text x="{x0 - 20}" y="{y_b}" text-anchor="middle" font-size="22" font-weight="bold" fill="#222">+</text>')
+    svg.append(f'<line x1="{x0 - 6}" y1="{y_line}" x2="{x0 + n * cell_w}" y2="{y_line}" stroke="#222" stroke-width="2.5"/>')
+
+    if fill:
+        carry = 0
+        carry_in_by_col = [0] * n
+        results = []
+        for i in range(n - 1, -1, -1):
+            da = int(a_pad[i]) if a_pad[i] != " " else 0
+            db = int(b_pad[i]) if b_pad[i] != " " else 0
+            carry_in_by_col[i] = carry
+            s = da + db + carry
+            digit, carry = s % 10, s // 10
+            results.append((i, digit))
+        for i, digit in results:
+            svg.append(f'<text x="{col_x(i)}" y="{y_sum}" text-anchor="middle" font-size="22" font-weight="bold" fill="#2e6da4">{digit}</text>')
+            if carry_in_by_col[i] > 0:
+                svg.append(f'<text x="{col_x(i)}" y="{y_carry}" text-anchor="middle" font-size="13" fill="#c0392b">{carry_in_by_col[i]}</text>')
+
+    svg.append("</svg>")
+    return "".join(svg)
+
+
+def column_addition(a: int, b: int, demo_a: int, demo_b: int) -> str:
+    """The question's chimney sum (blank, ready to fill in), set well
+    apart from a fully worked example of a different addition that
+    exchanges (carries) at least once — the same side-by-side layout
+    used for lattice multiplication and bus-stop division."""
+    blank = _chimney_svg(a, b, fill=False)
+    demo = _chimney_svg(demo_a, demo_b, fill=True)
+    inner = (
+        f'<div style="display:flex;align-items:flex-start;flex-wrap:wrap;">'
+        f'<div>{blank}</div>'
+        f'<div style="margin-left:90px;padding-left:24px;border-left:2px dashed #ccc;">{demo}</div>'
+        f'</div>'
+    )
+    return _wrap(inner)
+
+
 # ------------------------------------------------------ bus stop division
 def _bus_stop_svg(dividend: int, divisor: int, fill: bool) -> str:
     """A bus-stop (short) division layout: the divisor to the left of a
