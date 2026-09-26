@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import html
 import math
+import random
 
 
 CARD_STYLE = (
@@ -223,23 +224,39 @@ def double_frame(n: int, note: str | None = None) -> str:
     return _wrap(inner, note)
 
 
-def array_model(rows: int, cols: int) -> str:
-    """A `rows` x `cols` array of solid dots, arranged in a bordered grid —
-    each row is one group of `cols`, so the array reads as the same thing
-    as the repeated addition laid out visually: `rows` lots of `cols`."""
+_GROUP_PALETTE = [
+    ("#4fa8e8", "#1c6fa8"),
+    ("#e8544f", "#a8231c"),
+    ("#f2a541", "#b9740a"),
+    ("#5cb85c", "#3d8b3d"),
+    ("#a15fd1", "#6a2f96"),
+]
+
+
+def repeated_groups(n: int, times: int) -> str:
+    """`times` separate towers of `n` stacked cells (each holding a dot),
+    all the same colour and placed side by side — a direct picture of the
+    repeated addition n + n + ... (`times` times), one tower per addend."""
+    fill, stroke = random.choice(_GROUP_PALETTE)
     cell = 34
-    dot = f'<circle cx="{cell / 2}" cy="{cell / 2}" r="{cell / 2 - 5}" fill="#111"/>'
-    cells = [
-        f'<div style="width:{cell}px;height:{cell}px;border:1px solid #333;'
-        f'display:flex;align-items:center;justify-content:center;">'
-        f'<svg width="{cell}" height="{cell}">{dot}</svg></div>'
-        for _ in range(rows * cols)
-    ]
-    grid = (
-        f'<div style="display:inline-grid;grid-template-columns:repeat({cols},{cell}px);'
-        f'grid-template-rows:repeat({rows},{cell}px);">{"".join(cells)}</div>'
+    dot_size = cell - 12
+    dot = (
+        f'<svg width="{dot_size}" height="{dot_size}">'
+        f'<circle cx="{dot_size / 2}" cy="{dot_size / 2}" r="{dot_size / 2 - 2}" '
+        f'fill="none" stroke="#000" stroke-width="2"/></svg>'
     )
-    return _wrap(grid)
+    cell_html = (
+        f'<div style="width:{cell}px;height:{cell}px;background:{fill};'
+        f'border:2px solid {stroke};box-sizing:border-box;'
+        f'display:flex;align-items:center;justify-content:center;">{dot}</div>'
+    )
+    tower = (
+        f'<div style="display:flex;flex-direction:column;">'
+        + cell_html * n + "</div>"
+    )
+    towers = "".join(f'<div style="margin-right:16px;">{tower}</div>' for _ in range(times))
+    inner = f'<div style="display:flex;align-items:flex-end;">{towers}</div>'
+    return _wrap(inner)
 
 
 # ---------------------------------------------------------------- dienes blocks

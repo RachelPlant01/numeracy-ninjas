@@ -730,7 +730,7 @@ def ms_multiplication_repeated_addition() -> Question:
     times = random.randint(2, 6)
     addition = " + ".join([str(n)] * times)
     ans = times
-    scaffold = sc.array_model(times, n)
+    scaffold = sc.repeated_groups(n, times)
     return Question(f"{addition} = ☐ × {n}", str(ans), numeric_check(ans), scaffold)
 
 
