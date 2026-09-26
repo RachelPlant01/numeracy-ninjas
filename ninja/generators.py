@@ -750,17 +750,21 @@ def ms_equivalent_calc_addition() -> Question:
     b_round = (b // 10) * 10
     a_rem = a - a_round
     b_rem = b - b_round
-    ans = a_rem + b_rem
     total = a + b
     kind = random.choice(["dienes", "number_line", "bar_model"])
+    if kind == "number_line":
+        # Keep the first number whole here (rather than also rounding it
+        # down) so the line starts on the same number the equation does.
+        ans = b_rem
+        scaffold = sc.number_line(
+            a - 2, total + 3,
+            jumps=[(a, a + b_round, f"+{b_round}", False), (a + b_round, total, "+?", True)],
+            circle=a, hide_value=total,
+        )
+        return Question(f"{a} + {b} = {a} + {b_round} + ☐", str(ans), numeric_check(ans), scaffold)
+    ans = a_rem + b_rem
     if kind == "dienes":
         scaffold = sc.dienes_partition_pair(a_round, a_rem, b_round, b_rem)
-    elif kind == "number_line":
-        scaffold = sc.number_line(
-            a_round - 2, total + 3,
-            jumps=[(a_round, a_round + b_round, f"+{b_round}", False), (a_round + b_round, total, "+?", True)],
-            circle=a_round, hide_value=total,
-        )
     else:
         scaffold = sc.bar_model(f"{a} + {b}", [(str(a_round), a_round), (str(b_round), b_round), ("?", max(ans, 1))])
     return Question(f"{a} + {b} = {a_round} + {b_round} + ☐", str(ans), numeric_check(ans), scaffold)
