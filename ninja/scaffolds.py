@@ -655,7 +655,7 @@ def _bus_stop_svg(dividend: int, divisor: int, fill: bool) -> str:
     height = 90
 
     y_quotient, y_hline = 20, 30
-    y_bracket_top, y_bracket_bottom = 12, 72
+    y_bracket_top, y_bracket_bottom = y_hline, 72
     y_dividend = 58
     x_bracket = left_pad
 
