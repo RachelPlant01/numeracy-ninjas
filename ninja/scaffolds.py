@@ -223,6 +223,25 @@ def double_frame(n: int, note: str | None = None) -> str:
     return _wrap(inner, note)
 
 
+def array_model(rows: int, cols: int) -> str:
+    """A `rows` x `cols` array of solid dots, arranged in a bordered grid —
+    each row is one group of `cols`, so the array reads as the same thing
+    as the repeated addition laid out visually: `rows` lots of `cols`."""
+    cell = 34
+    dot = f'<circle cx="{cell / 2}" cy="{cell / 2}" r="{cell / 2 - 5}" fill="#111"/>'
+    cells = [
+        f'<div style="width:{cell}px;height:{cell}px;border:1px solid #333;'
+        f'display:flex;align-items:center;justify-content:center;">'
+        f'<svg width="{cell}" height="{cell}">{dot}</svg></div>'
+        for _ in range(rows * cols)
+    ]
+    grid = (
+        f'<div style="display:inline-grid;grid-template-columns:repeat({cols},{cell}px);'
+        f'grid-template-rows:repeat({rows},{cell}px);">{"".join(cells)}</div>'
+    )
+    return _wrap(grid)
+
+
 # ---------------------------------------------------------------- dienes blocks
 _DIENES_UNIT = 18  # a ten-rod is exactly 10 of these squares laid end to end
 

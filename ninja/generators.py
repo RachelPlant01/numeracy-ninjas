@@ -726,16 +726,11 @@ def ms_reorder_addition() -> Question:
 
 
 def ms_multiplication_repeated_addition() -> Question:
-    n = random.randint(2, 12)
+    n = random.randint(2, 9)
     times = random.randint(2, 6)
-    style = random.choice(["find_multiplier", "sum_form"])
-    if style == "find_multiplier":
-        total = n * times
-        scaffold = sc.fact_list([f"{n} × {times} = {total}"], note="How many lots of the number make the total?")
-        return Question(f"{total} = ☐ × {n}", str(times), numeric_check(times), scaffold)
     addition = " + ".join([str(n)] * times)
     ans = times
-    scaffold = sc.hint_list([f"Count how many {n}s are being added."])
+    scaffold = sc.array_model(times, n)
     return Question(f"{addition} = ☐ × {n}", str(ans), numeric_check(ans), scaffold)
 
 
