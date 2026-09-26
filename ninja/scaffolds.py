@@ -637,6 +637,57 @@ def place_value_grid(number_str: str, headers: list[str], highlight: int | None 
     return _wrap(grid_h + grid_d, note)
 
 
+# --------------------------------------------------------- lattice multiply
+def _lattice_svg(a: int, b: int, fill: bool) -> str:
+    """One lattice-multiplication grid: `a`'s digits along the top,
+    `b`'s digits down the right, each cell split by a diagonal into a
+    tens triangle (upper-right) and a units triangle (lower-left). When
+    `fill` is False the cells are left blank for a pupil to complete;
+    when True every cell's partial product is written in."""
+    a_digits = [int(c) for c in str(a)]
+    b_digits = [int(c) for c in str(b)]
+    cols, rows = len(a_digits), len(b_digits)
+    cell = 44
+    top_pad, right_pad = 32, 32
+    width = cols * cell + right_pad
+    height = top_pad + rows * cell
+
+    svg = [
+        f'<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" '
+        f'xmlns="http://www.w3.org/2000/svg" font-family="inherit">'
+    ]
+    for c, d in enumerate(a_digits):
+        x = c * cell + cell / 2
+        svg.append(f'<text x="{x}" y="{top_pad - 8}" text-anchor="middle" font-size="20" font-weight="bold" fill="#222">{d}</text>')
+    for r, d in enumerate(b_digits):
+        y = top_pad + r * cell + cell / 2 + 7
+        svg.append(f'<text x="{cols * cell + right_pad - 8}" y="{y}" text-anchor="middle" font-size="20" font-weight="bold" fill="#222">{d}</text>')
+
+    for c in range(cols):
+        for r in range(rows):
+            x0, y0 = c * cell, top_pad + r * cell
+            x1, y1 = x0 + cell, y0 + cell
+            svg.append(f'<rect x="{x0}" y="{y0}" width="{cell}" height="{cell}" fill="#fff" stroke="#333" stroke-width="1.5"/>')
+            svg.append(f'<line x1="{x0}" y1="{y0}" x2="{x1}" y2="{y1}" stroke="#333" stroke-width="1"/>')
+            if fill:
+                product = a_digits[c] * b_digits[r]
+                tens, ones = divmod(product, 10)
+                svg.append(f'<text x="{x0 + cell * 0.7}" y="{y0 + cell * 0.35}" text-anchor="middle" font-size="16" fill="#c0392b">{tens}</text>')
+                svg.append(f'<text x="{x0 + cell * 0.3}" y="{y0 + cell * 0.82}" text-anchor="middle" font-size="16" fill="#2e6da4">{ones}</text>')
+    svg.append("</svg>")
+    return "".join(svg)
+
+
+def lattice_multiplication(a: int, b: int, demo_a: int, demo_b: int) -> str:
+    """The question's lattice grid (blank, ready to fill in) next to a
+    fully worked example of a different calculation, so a pupil can see
+    how the method goes before trying their own numbers."""
+    blank = _lattice_svg(a, b, fill=False)
+    demo = _lattice_svg(demo_a, demo_b, fill=True)
+    inner = f'<div style="display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap;">{blank}{demo}</div>'
+    return _wrap(inner)
+
+
 # ------------------------------------------------------------- hundred square
 def hundred_square(a: int, b: int) -> str:
     """A 1-100 grid (10 per row) with cell `a` and cell `b` highlighted.

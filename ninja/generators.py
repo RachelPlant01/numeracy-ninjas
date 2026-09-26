@@ -79,11 +79,8 @@ def ks_multiply_whole_numbers() -> Question:
     a = random.randint(12, 950)
     b = random.randint(3, 90)
     ans = a * b
-    scaffold = sc.hint_list([
-        f"Split {a} into friendlier parts, e.g. tens and ones.",
-        f"Multiply {b} by each part separately.",
-        "Add the partial answers back together.",
-    ], note="Grid / partial-products method.")
+    demo_a, demo_b = (34, 56) if (a, b) != (34, 56) else (23, 14)
+    scaffold = sc.lattice_multiplication(a, b, demo_a, demo_b)
     return Question(f"{a} × {b} =", str(ans), numeric_check(ans), scaffold)
 
 
