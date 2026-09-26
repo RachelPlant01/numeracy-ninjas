@@ -232,19 +232,31 @@ def ks_convert_fdp() -> Question:
 
 
 def ks_multiply_by_10_100_1000() -> Question:
-    n = round(random.uniform(0.01, 99.9), 3)
     mult = random.choice([10, 100, 1000])
-    ans = n * mult
-    scaffold = sc.hint_list([f"Multiplying by {mult} moves every digit {len(str(mult))-1} place(s) to the left."])
-    return Question(f"{n} × {mult} =", _fmt(round(ans, 3)), numeric_check(ans, 0.001), scaffold)
+    shift = {10: 1, 100: 2, 1000: 3}[mult]
+    int_digits = random.randint(1, 5 - shift)
+    dec_digits = random.randint(0, 2)
+    int_part = [random.randint(1, 9)] + [random.randint(0, 9) for _ in range(int_digits - 1)]
+    dec_part = [random.randint(0, 9) for _ in range(dec_digits)]
+    n_str = "".join(map(str, int_part)) + ("." + "".join(map(str, dec_part)) if dec_part else "")
+    n = float(n_str)
+    ans = round(n * mult, 3)
+    scaffold = sc.place_value_shift(int_part, dec_part, shift, direction="left")
+    return Question(f"{_fmt(n)} × {mult} =", _fmt(ans), numeric_check(ans, 0.001), scaffold)
 
 
 def ks_divide_by_10_100_1000() -> Question:
-    n = round(random.uniform(1, 9999), 3)
     div = random.choice([10, 100, 1000])
-    ans = n / div
-    scaffold = sc.hint_list([f"Dividing by {div} moves every digit {len(str(div))-1} place(s) to the right."])
-    return Question(f"{n} ÷ {div} =", _fmt(round(ans, 3)), numeric_check(ans, 0.001), scaffold)
+    shift = {10: 1, 100: 2, 1000: 3}[div]
+    dec_digits = random.randint(0, 3 - shift)
+    int_digits = random.randint(1, 3)
+    int_part = [random.randint(1, 9)] + [random.randint(0, 9) for _ in range(int_digits - 1)]
+    dec_part = [random.randint(0, 9) for _ in range(dec_digits)]
+    n_str = "".join(map(str, int_part)) + ("." + "".join(map(str, dec_part)) if dec_part else "")
+    n = float(n_str)
+    ans = round(n / div, 3)
+    scaffold = sc.place_value_shift(int_part, dec_part, shift, direction="right")
+    return Question(f"{_fmt(n)} ÷ {div} =", _fmt(ans), numeric_check(ans, 0.001), scaffold)
 
 
 def ks_add_decimal_numbers() -> Question:

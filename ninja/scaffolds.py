@@ -637,6 +637,80 @@ def place_value_grid(number_str: str, headers: list[str], highlight: int | None 
     return _wrap(grid_h + grid_d, note)
 
 
+# --------------------------------------------------------- place value shift
+def place_value_shift(int_part: list[int], dec_part: list[int], shift: int, direction: str) -> str:
+    """A bordered place-value grid (ten-thousands down to thousandths,
+    with its own narrow column for the decimal point) — a green header
+    row, the number's digits placed in their columns underneath, and a
+    second, blank row below with a straight arrow from each digit down
+    into the column it moves to: `shift` places left (multiplying by a
+    power of 10) or right (dividing). The second row is left for the
+    pupil to fill in themselves."""
+    labels = ["TTh", "Th", "H", "T", "O", "•", "t", "h", "th"]
+    point_digit_index = 5  # the point sits between digit-index 4 (O) and 5 (t)
+    widths = [46, 46, 46, 46, 46, 26, 46, 46, 46]
+    n_vis = len(labels)
+    x0 = 10
+
+    def vis(digit_index: int) -> int:
+        return digit_index if digit_index < point_digit_index else digit_index + 1
+
+    xs = [x0]
+    for w in widths:
+        xs.append(xs[-1] + w)
+    def col_left(vis_i: int) -> float:
+        return xs[vis_i]
+    def col_center(vis_i: int) -> float:
+        return xs[vis_i] + widths[vis_i] / 2
+
+    width = xs[-1] + 10
+    header_h, row_h = 32, 42
+    y_header0, y_row1_0, y_row2_0 = 6, 6 + header_h, 6 + header_h + row_h
+    height = y_row2_0 + row_h + 6
+
+    def cell_rect(vis_i: int, y0: float, h: float, fill: str) -> str:
+        return (
+            f'<rect x="{col_left(vis_i)}" y="{y0}" width="{widths[vis_i]}" height="{h}" '
+            f'fill="{fill}" stroke="#333" stroke-width="1.5"/>'
+        )
+
+    svg = [
+        f'<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" '
+        f'xmlns="http://www.w3.org/2000/svg" font-family="inherit">',
+        '<defs><marker id="pvarrow" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" '
+        'orient="auto"><path d="M0,0 L7,3.5 L0,7 z" fill="#3d8b3d"/></marker></defs>',
+    ]
+
+    for vis_i in range(n_vis):
+        svg.append(cell_rect(vis_i, y_header0, header_h, "#a9d8a6"))
+        svg.append(cell_rect(vis_i, y_row1_0, row_h, "#fff"))
+        svg.append(cell_rect(vis_i, y_row2_0, row_h, "#fff"))
+        svg.append(f'<text x="{col_center(vis_i)}" y="{y_header0 + header_h / 2 + 5}" text-anchor="middle" font-size="15" font-weight="bold" fill="#1c1c1c">{labels[vis_i]}</text>')
+
+    point_vis = point_digit_index
+    svg.append(f'<text x="{col_center(point_vis)}" y="{y_row1_0 + row_h / 2 + 6}" text-anchor="middle" font-size="20" font-weight="bold" fill="#222">•</text>')
+    svg.append(f'<text x="{col_center(point_vis)}" y="{y_row2_0 + row_h / 2 + 6}" text-anchor="middle" font-size="20" font-weight="bold" fill="#222">•</text>')
+
+    digit_cols: dict[int, int] = {}
+    offset = 4 - (len(int_part) - 1)
+    for i, d in enumerate(int_part):
+        digit_cols[offset + i] = d
+    for i, d in enumerate(dec_part):
+        digit_cols[5 + i] = d
+
+    for c, d in digit_cols.items():
+        svg.append(f'<text x="{col_center(vis(c))}" y="{y_row1_0 + row_h / 2 + 6}" text-anchor="middle" font-size="20" font-weight="bold" fill="#222">{d}</text>')
+
+    for c in sorted(digit_cols):
+        target = c - shift if direction == "left" else c + shift
+        xa, ya = col_center(vis(c)), y_row1_0 + row_h - 6
+        xb, yb = col_center(vis(target)), y_row2_0 + 8
+        svg.append(f'<line x1="{xa}" y1="{ya}" x2="{xb}" y2="{yb}" stroke="#3d8b3d" stroke-width="2" marker-end="url(#pvarrow)"/>')
+
+    svg.append("</svg>")
+    return _wrap("".join(svg))
+
+
 # --------------------------------------------------------- column addition
 def _chimney_svg(a: int, b: int, fill: bool, decimals: int = 0) -> str:
     """A "chimney sum": `a` and `b` stacked right-aligned with a `+` to
