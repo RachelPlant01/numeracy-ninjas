@@ -637,6 +637,70 @@ def place_value_grid(number_str: str, headers: list[str], highlight: int | None 
     return _wrap(grid_h + grid_d, note)
 
 
+# ------------------------------------------------------ bus stop division
+def _bus_stop_svg(dividend: int, divisor: int, fill: bool) -> str:
+    """A bus-stop (short) division layout: the divisor to the left of a
+    bracket, the dividend's digits laid out under the bracket's
+    horizontal line. When `fill` is False only this structure and the
+    question's own numbers are drawn, with the quotient row left blank;
+    when True the quotient is worked out digit by digit and any
+    remainder carried into the next digit is shown as a small digit
+    above it, the way it's written by hand."""
+    digits = [int(c) for c in str(dividend)]
+    n = len(digits)
+    divisor_str = str(divisor)
+    cell_w = 34
+    left_pad = 16 + len(divisor_str) * 15
+    width = left_pad + n * cell_w + 12
+    height = 90
+
+    y_quotient, y_hline = 20, 30
+    y_bracket_top, y_bracket_bottom = 12, 72
+    y_dividend = 58
+    x_bracket = left_pad
+
+    svg = [
+        f'<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" '
+        f'xmlns="http://www.w3.org/2000/svg" font-family="inherit">',
+        f'<text x="{x_bracket - 10}" y="{y_dividend}" text-anchor="end" font-size="22" font-weight="bold" fill="#222">{divisor_str}</text>',
+        f'<line x1="{x_bracket}" y1="{y_bracket_top}" x2="{x_bracket}" y2="{y_bracket_bottom}" stroke="#222" stroke-width="2.5"/>',
+        f'<line x1="{x_bracket}" y1="{y_hline}" x2="{x_bracket + n * cell_w}" y2="{y_hline}" stroke="#222" stroke-width="2.5"/>',
+    ]
+
+    for i, d in enumerate(digits):
+        x = x_bracket + i * cell_w + cell_w / 2
+        svg.append(f'<text x="{x}" y="{y_dividend}" text-anchor="middle" font-size="22" font-weight="bold" fill="#222">{d}</text>')
+
+    if fill:
+        r = 0
+        for i, d in enumerate(digits):
+            carry_in = r
+            current = carry_in * 10 + d
+            qd, r = divmod(current, divisor)
+            x = x_bracket + i * cell_w + cell_w / 2
+            svg.append(f'<text x="{x}" y="{y_quotient}" text-anchor="middle" font-size="22" font-weight="bold" fill="#2e6da4">{qd}</text>')
+            if i > 0 and carry_in > 0:
+                svg.append(f'<text x="{x - 12}" y="{y_dividend - 16}" text-anchor="middle" font-size="12" fill="#c0392b">{carry_in}</text>')
+
+    svg.append("</svg>")
+    return "".join(svg)
+
+
+def division_bus_stop(a: int, b: int, demo_a: int, demo_b: int) -> str:
+    """The question's bus-stop division (blank, ready to fill in), set
+    well apart from a fully worked example of a different division —
+    the same side-by-side layout used for lattice multiplication."""
+    blank = _bus_stop_svg(a, b, fill=False)
+    demo = _bus_stop_svg(demo_a, demo_b, fill=True)
+    inner = (
+        f'<div style="display:flex;align-items:flex-start;flex-wrap:wrap;">'
+        f'<div>{blank}</div>'
+        f'<div style="margin-left:90px;padding-left:24px;border-left:2px dashed #ccc;">{demo}</div>'
+        f'</div>'
+    )
+    return _wrap(inner)
+
+
 # --------------------------------------------------------- lattice multiply
 def _lattice_svg(a: int, b: int, fill: bool) -> str:
     """One lattice-multiplication grid: `a`'s digits along the top,

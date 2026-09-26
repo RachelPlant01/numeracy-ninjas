@@ -87,12 +87,9 @@ def ks_multiply_whole_numbers() -> Question:
 def ks_divide_whole_numbers() -> Question:
     b = random.randint(3, 12)
     q = random.randint(20, 400)
-    a = a_val = b * q
-    scaffold = sc.hint_list([
-        f"How many groups of {b} fit into {a}?",
-        f"Try multiplying {b} by 10, 20, 30… to get close first.",
-        "Subtract that chunk, then finish the remainder.",
-    ], note="Chunking method.")
+    a = b * q
+    demo_a, demo_b = (875, 7) if (a, b) != (875, 7) else (936, 8)
+    scaffold = sc.division_bus_stop(a, b, demo_a, demo_b)
     return Question(f"{a} ÷ {b} =", str(q), numeric_check(q), scaffold)
 
 
