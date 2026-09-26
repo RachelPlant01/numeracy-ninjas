@@ -717,7 +717,11 @@ def ms_reorder_addition() -> Question:
     small = random.randint(2, 9)
     large = random.randint(100, 900)
     ans = small + large
-    scaffold = sc.hint_list([f"It's easier to start with the bigger number: {large} + {small} instead of {small} + {large}."])
+    scaffold = sc.number_line(
+        large - 2, large + small + 2,
+        jumps=[(large, ans, f"+{small}", False)],
+        circle=large, hide_value=ans,
+    )
     return Question(f"{small} + {large}", str(ans), numeric_check(ans), scaffold)
 
 
