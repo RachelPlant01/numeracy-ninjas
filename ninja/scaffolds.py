@@ -329,11 +329,14 @@ def _dienes_split_cube() -> str:
 
 def _dienes_cube_dashed() -> str:
     """A hollow, dashed unit cube — for a count that's there to be worked
-    out (and counted) rather than one that's already known."""
+    out (and counted) rather than one that's already known. Sized to
+    exactly `_DIENES_UNIT`, matching one rod segment's width, so a loose
+    cube reads as the same size as the ones making up a ten-rod rather
+    than looking oversized next to them."""
     u = _DIENES_UNIT
     return (
-        f'<svg width="{u+2}" height="{u+2}" viewBox="0 0 {u+2} {u+2}">'
-        f'<rect x="1" y="1" width="{u}" height="{u}" rx="2" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="3,3"/>'
+        f'<svg width="{u}" height="{u}" viewBox="0 0 {u} {u}">'
+        f'<rect x="1" y="1" width="{u - 2}" height="{u - 2}" rx="2" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="3,3"/>'
         "</svg>"
     )
 
