@@ -603,6 +603,18 @@ def ms_subtract_10() -> Question:
     return Question(f"{n} − 10", str(ans), numeric_check(ans), scaffold)
 
 
+def ms_add_9() -> Question:
+    n = random.randint(4, 95)
+    ans = n + 9
+    scaffold = sc.number_line(
+        n - 2, n + 11,
+        jumps=[(n, n + 10, "+10", False), (n + 10, ans, "-1", False)],
+        circle=n, hide_value=ans,
+    )
+    order = random.choice([f"{n} + 9", f"9 + {n}"])
+    return Question(order, str(ans), numeric_check(ans), scaffold)
+
+
 def ms_add_multiples_of_10() -> Question:
     n = random.randint(1, 150)
     m = random.choice([10, 20, 30, 40, 50, 60, 70, 80, 90])
@@ -858,6 +870,7 @@ MENTAL_STRATEGIES: dict[str, tuple[str, callable]] = {
     "MS8": ("Halving a two digit number", ms_halve_two_digit),
     "MS9": ("Adding 10 to a number", ms_add_10),
     "MS10": ("Subtracting 10 from a number", ms_subtract_10),
+    "MS28": ("Adding 9 to a number", ms_add_9),
     "MS11": ("Adding multiples of 10 to a number", ms_add_multiples_of_10),
     "MS12": ("Subtracting multiples of 10 from a number", ms_subtract_multiples_of_10),
     "MS13": ("How many to a multiple of 10?", ms_how_many_to_multiple_of_10),
