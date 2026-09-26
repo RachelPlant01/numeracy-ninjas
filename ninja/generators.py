@@ -251,16 +251,18 @@ def ks_add_decimal_numbers() -> Question:
     a = round(random.uniform(1, 90), 2)
     b = round(random.uniform(1, 90), 2)
     ans = round(a + b, 2)
-    scaffold = sc.hint_list([f"Line up the decimal points under each other before adding {a} and {b}."])
-    return Question(f"{a} + {b}", _fmt(ans), numeric_check(ans, 0.01), scaffold)
+    demo_a, demo_b = (4.65, 3.78) if (a, b) != (4.65, 3.78) else (5.46, 2.87)
+    scaffold = sc.column_addition(round(a * 100), round(b * 100), round(demo_a * 100), round(demo_b * 100), decimals=2)
+    return Question(f"{_fmt(a)} + {_fmt(b)}", _fmt(ans), numeric_check(ans, 0.01), scaffold)
 
 
 def ks_subtract_decimal_numbers() -> Question:
     a = round(random.uniform(10, 99), 2)
     b = round(random.uniform(1, a - 1), 2)
     ans = round(a - b, 2)
-    scaffold = sc.hint_list([f"Line up the decimal points under each other before subtracting {b} from {a}."])
-    return Question(f"{a} - {b}", _fmt(ans), numeric_check(ans, 0.01), scaffold)
+    demo_a, demo_b = (5.32, 1.78) if (a, b) != (5.32, 1.78) else (6.41, 2.75)
+    scaffold = sc.column_subtraction(round(a * 100), round(b * 100), round(demo_a * 100), round(demo_b * 100), decimals=2)
+    return Question(f"{_fmt(a)} - {_fmt(b)}", _fmt(ans), numeric_check(ans, 0.01), scaffold)
 
 
 def ks_multiply_negative_numbers() -> Question:

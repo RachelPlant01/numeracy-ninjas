@@ -638,21 +638,27 @@ def place_value_grid(number_str: str, headers: list[str], highlight: int | None 
 
 
 # --------------------------------------------------------- column addition
-def _chimney_svg(a: int, b: int, fill: bool) -> str:
+def _chimney_svg(a: int, b: int, fill: bool, decimals: int = 0) -> str:
     """A "chimney sum": `a` and `b` stacked right-aligned with a `+` to
     the left and a line beneath, wide enough for any carried extra
-    digit. When `fill` is False the space below the line is left blank
-    for the pupil to write the total in; when True the total is worked
-    out column by column, with any carry shown as a small digit above
-    the column it was carried into."""
+    digit. `a` and `b` are always whole numbers — pass them scaled up
+    (e.g. pence instead of pounds) and set `decimals` to how many of
+    the rightmost digits are actually after a decimal point, and a
+    point is drawn at that position in every row. When `fill` is False
+    the space below the line is left blank for the pupil to write the
+    total in; when True the total is worked out column by column, with
+    any carry shown as a small digit above the column it was carried
+    into."""
     a_str, b_str = str(a), str(b)
     total = a + b
-    n = len(str(total))
+    n = max(len(str(total)), decimals + 1)
     cell_w, row_h = 32, 36
     plus_pad = 34
     carry_h = 22 if fill else 0
+    dot_gap = 10 if decimals else 0
+    dot_col = n - decimals
 
-    width = plus_pad + n * cell_w + 10
+    width = plus_pad + n * cell_w + dot_gap + 10
     height = carry_h + 3 * row_h + 12
     x0 = plus_pad
 
@@ -663,7 +669,10 @@ def _chimney_svg(a: int, b: int, fill: bool) -> str:
     y_sum = y_line + row_h - 6
 
     def col_x(i: int) -> float:
-        return x0 + i * cell_w + cell_w / 2
+        shift = dot_gap if i >= dot_col else 0
+        return x0 + i * cell_w + shift + cell_w / 2
+
+    dot_x = x0 + dot_col * cell_w + dot_gap / 2
 
     svg = [
         f'<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" '
@@ -677,7 +686,10 @@ def _chimney_svg(a: int, b: int, fill: bool) -> str:
         if ch != " ":
             svg.append(f'<text x="{col_x(i)}" y="{y_b}" text-anchor="middle" font-size="22" font-weight="bold" fill="#222">{ch}</text>')
     svg.append(f'<text x="{x0 - 20}" y="{y_b}" text-anchor="middle" font-size="22" font-weight="bold" fill="#222">+</text>')
-    svg.append(f'<line x1="{x0 - 6}" y1="{y_line}" x2="{x0 + n * cell_w}" y2="{y_line}" stroke="#222" stroke-width="2.5"/>')
+    svg.append(f'<line x1="{x0 - 6}" y1="{y_line}" x2="{x0 + n * cell_w + dot_gap}" y2="{y_line}" stroke="#222" stroke-width="2.5"/>')
+    if decimals:
+        svg.append(f'<text x="{dot_x}" y="{y_a}" text-anchor="middle" font-size="22" font-weight="bold" fill="#222">.</text>')
+        svg.append(f'<text x="{dot_x}" y="{y_b}" text-anchor="middle" font-size="22" font-weight="bold" fill="#222">.</text>')
 
     if fill:
         carry = 0
@@ -694,18 +706,22 @@ def _chimney_svg(a: int, b: int, fill: bool) -> str:
             svg.append(f'<text x="{col_x(i)}" y="{y_sum}" text-anchor="middle" font-size="22" font-weight="bold" fill="#2e6da4">{digit}</text>')
             if carry_in_by_col[i] > 0:
                 svg.append(f'<text x="{col_x(i)}" y="{y_carry}" text-anchor="middle" font-size="13" fill="#c0392b">{carry_in_by_col[i]}</text>')
+        if decimals:
+            svg.append(f'<text x="{dot_x}" y="{y_sum}" text-anchor="middle" font-size="22" font-weight="bold" fill="#2e6da4">.</text>')
 
     svg.append("</svg>")
     return "".join(svg)
 
 
-def column_addition(a: int, b: int, demo_a: int, demo_b: int) -> str:
+def column_addition(a: int, b: int, demo_a: int, demo_b: int, decimals: int = 0) -> str:
     """The question's chimney sum (blank, ready to fill in), set well
     apart from a fully worked example of a different addition that
     exchanges (carries) at least once — the same side-by-side layout
-    used for lattice multiplication and bus-stop division."""
-    blank = _chimney_svg(a, b, fill=False)
-    demo = _chimney_svg(demo_a, demo_b, fill=True)
+    used for lattice multiplication and bus-stop division. Pass
+    `decimals` through when `a`/`b`/the demo values are scaled-up
+    decimals (see `_chimney_svg`)."""
+    blank = _chimney_svg(a, b, fill=False, decimals=decimals)
+    demo = _chimney_svg(demo_a, demo_b, fill=True, decimals=decimals)
     inner = (
         f'<div style="display:flex;align-items:flex-start;flex-wrap:wrap;">'
         f'<div>{blank}</div>'
@@ -715,21 +731,27 @@ def column_addition(a: int, b: int, demo_a: int, demo_b: int) -> str:
     return _wrap(inner)
 
 
-def _chimney_subtract_svg(a: int, b: int, fill: bool) -> str:
+def _chimney_subtract_svg(a: int, b: int, fill: bool, decimals: int = 0) -> str:
     """A "chimney sum" for subtraction: `a` and `b` stacked right-
-    aligned with a `-` to the left and a line beneath. When `fill` is
-    False the space below the line is left blank; when True the
-    difference is worked out column by column, showing an exchange
-    (borrow) the way it's written by hand — the lending column's digit
-    struck through with the reduced value above it, and a small "1"
-    above the column that borrowed the ten."""
-    n = len(str(a))
+    aligned with a `-` to the left and a line beneath. `a` and `b` are
+    always whole numbers — pass them scaled up (e.g. pence instead of
+    pounds) and set `decimals` to how many of the rightmost digits are
+    actually after a decimal point, and a point is drawn at that
+    position in every row. When `fill` is False the space below the
+    line is left blank; when True the difference is worked out column
+    by column, showing an exchange (borrow) the way it's written by
+    hand — the lending column's digit struck through with the reduced
+    value above it, and a small "1" above the column that borrowed the
+    ten."""
+    n = max(len(str(a)), decimals + 1)
     a_pad, b_pad = str(a).rjust(n), str(b).rjust(n)
     cell_w, row_h = 32, 36
     plus_pad = 34
     note_h = 26 if fill else 0
+    dot_gap = 10 if decimals else 0
+    dot_col = n - decimals
 
-    width = plus_pad + n * cell_w + 10
+    width = plus_pad + n * cell_w + dot_gap + 10
     height = note_h + 3 * row_h + 12
     x0 = plus_pad
     y_a = note_h + row_h - 8
@@ -738,7 +760,10 @@ def _chimney_subtract_svg(a: int, b: int, fill: bool) -> str:
     y_sum = y_line + row_h - 6
 
     def col_x(i: int) -> float:
-        return x0 + i * cell_w + cell_w / 2
+        shift = dot_gap if i >= dot_col else 0
+        return x0 + i * cell_w + shift + cell_w / 2
+
+    dot_x = x0 + dot_col * cell_w + dot_gap / 2
 
     svg = [
         f'<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" '
@@ -775,23 +800,30 @@ def _chimney_subtract_svg(a: int, b: int, fill: bool) -> str:
         if ch != " ":
             svg.append(f'<text x="{col_x(i)}" y="{y_b}" text-anchor="middle" font-size="22" font-weight="bold" fill="#222">{ch}</text>')
     svg.append(f'<text x="{x0 - 20}" y="{y_b}" text-anchor="middle" font-size="22" font-weight="bold" fill="#222">-</text>')
-    svg.append(f'<line x1="{x0 - 6}" y1="{y_line}" x2="{x0 + n * cell_w}" y2="{y_line}" stroke="#222" stroke-width="2.5"/>')
+    svg.append(f'<line x1="{x0 - 6}" y1="{y_line}" x2="{x0 + n * cell_w + dot_gap}" y2="{y_line}" stroke="#222" stroke-width="2.5"/>')
+    if decimals:
+        svg.append(f'<text x="{dot_x}" y="{y_a}" text-anchor="middle" font-size="22" font-weight="bold" fill="#222">.</text>')
+        svg.append(f'<text x="{dot_x}" y="{y_b}" text-anchor="middle" font-size="22" font-weight="bold" fill="#222">.</text>')
 
     if fill:
         for i in range(n):
             svg.append(f'<text x="{col_x(i)}" y="{y_sum}" text-anchor="middle" font-size="22" font-weight="bold" fill="#2e6da4">{diffs[i]}</text>')
+        if decimals:
+            svg.append(f'<text x="{dot_x}" y="{y_sum}" text-anchor="middle" font-size="22" font-weight="bold" fill="#2e6da4">.</text>')
 
     svg.append("</svg>")
     return "".join(svg)
 
 
-def column_subtraction(a: int, b: int, demo_a: int, demo_b: int) -> str:
+def column_subtraction(a: int, b: int, demo_a: int, demo_b: int, decimals: int = 0) -> str:
     """The question's chimney sum for subtraction (blank, ready to fill
     in), set well apart from a fully worked example of a different
     subtraction that exchanges (borrows) at least once — the same
-    side-by-side layout used for the other written-method scaffolds."""
-    blank = _chimney_subtract_svg(a, b, fill=False)
-    demo = _chimney_subtract_svg(demo_a, demo_b, fill=True)
+    side-by-side layout used for the other written-method scaffolds.
+    Pass `decimals` through when `a`/`b`/the demo values are scaled-up
+    decimals (see `_chimney_subtract_svg`)."""
+    blank = _chimney_subtract_svg(a, b, fill=False, decimals=decimals)
+    demo = _chimney_subtract_svg(demo_a, demo_b, fill=True, decimals=decimals)
     inner = (
         f'<div style="display:flex;align-items:flex-start;flex-wrap:wrap;">'
         f'<div>{blank}</div>'
