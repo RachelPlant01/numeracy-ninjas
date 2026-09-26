@@ -735,11 +735,11 @@ def ms_multiplication_repeated_addition() -> Question:
 
 
 def ms_division_inverse_multiplication() -> Question:
-    a = random.randint(2, 12)
-    b = random.randint(2, 12)
+    a = random.randint(2, 6)
+    b = random.randint(2, 9)
     product = a * b
     ans = b
-    scaffold = sc.fact_list([f"{a} × {b} = {product}", f"So {product} ÷ {a} = ☐"], note="Division undoes multiplication.")
+    scaffold = sc.repeated_groups(b, a)
     return Question(f"{a} × {b} = {product}, so {product} ÷ {a} = ☐", str(ans), numeric_check(ans), scaffold)
 
 
