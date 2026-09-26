@@ -681,9 +681,9 @@ def _lattice_svg(a: int, b: int, fill: bool) -> str:
 
 def _lattice_demo_svg(a: int, b: int) -> str:
     """A fully worked 2-digit x 2-digit lattice, including the diagonal
-    sums read off around the outside and — wherever one of those sums is
-    10 or more — a curved arrow showing the carry ("exchange") into the
-    next diagonal, the way it's demonstrated by hand."""
+    sums read off around the outside — with a small carried digit
+    written in above whichever sum received one, the way it's normally
+    written by hand — rather than the sum's full working."""
     a_digits = [int(c) for c in str(a)]
     b_digits = [int(c) for c in str(b)]
     cols, rows = len(a_digits), len(b_digits)
@@ -698,8 +698,6 @@ def _lattice_demo_svg(a: int, b: int) -> str:
     svg = [
         f'<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" '
         f'xmlns="http://www.w3.org/2000/svg" font-family="inherit">',
-        '<defs><marker id="latarrow" markerWidth="8" markerHeight="8" refX="4" refY="4" '
-        'orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#c0392b"/></marker></defs>',
     ]
     for c, d in enumerate(a_digits):
         x = ox + c * cell + cell / 2
@@ -731,12 +729,12 @@ def _lattice_demo_svg(a: int, b: int) -> str:
         diag_sums[dist] += ones
         diag_sums[dist + 1] += tens
 
-    digits, carry, carried_from = [], 0, []
+    digits, carry_ins, carry = [], [], 0
     for total in diag_sums:
+        carry_ins.append(carry)
         combined = total + carry
         digit, carry = combined % 10, combined // 10
         digits.append(digit)
-        carried_from.append(carry > 0)
 
     # For this 2x2 layout: diagonal 0 exits bottom-right, diagonal 1
     # exits at the bottom's internal gridline, diagonal 2 exits at the
@@ -751,18 +749,9 @@ def _lattice_demo_svg(a: int, b: int) -> str:
     ]
     for i in range(n_diag):
         x, y = anchors[i] if i < len(anchors) else anchors[-1]
+        if carry_ins[i] > 0:
+            svg.append(f'<text x="{x - 13}" y="{y - 12}" text-anchor="middle" font-size="12" fill="#c0392b">{carry_ins[i]}</text>')
         svg.append(f'<text x="{x}" y="{y}" text-anchor="middle" font-size="18" font-weight="bold" fill="#222">{digits[i]}</text>')
-
-    for i, did_carry in enumerate(carried_from):
-        if did_carry and i + 1 < n_diag:
-            xa, ya = anchors[i]
-            xb, yb = anchors[i + 1]
-            mx, my = (xa + xb) / 2, min(ya, yb) - 22
-            svg.append(
-                f'<path d="M{xa},{ya - 10} Q{mx},{my} {xb},{yb + 10}" '
-                f'fill="none" stroke="#c0392b" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#latarrow)"/>'
-            )
-            svg.append(f'<text x="{mx}" y="{my - 4}" text-anchor="middle" font-size="12" fill="#c0392b" font-weight="bold">exchange +1</text>')
 
     svg.append("</svg>")
     return "".join(svg)
@@ -771,9 +760,10 @@ def _lattice_demo_svg(a: int, b: int) -> str:
 def lattice_multiplication(a: int, b: int, demo_a: int, demo_b: int) -> str:
     """The question's lattice grid (blank, ready to fill in), set well
     apart from a fully worked example of a different 2-digit x 2-digit
-    calculation — including its diagonal sums and an "exchange" carry —
-    so a pupil can see how the method goes before trying their own
-    numbers, without mistaking the demo's digits for their own."""
+    calculation — including its diagonal sums, with a small carried
+    digit shown wherever one occurs — so a pupil can see how the method
+    goes before trying their own numbers, without mistaking the demo's
+    digits for their own."""
     blank = _lattice_svg(a, b, fill=False)
     demo = _lattice_demo_svg(demo_a, demo_b)
     inner = (
