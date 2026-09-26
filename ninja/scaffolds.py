@@ -640,10 +640,11 @@ def place_value_grid(number_str: str, headers: list[str], highlight: int | None 
 # --------------------------------------------------------- lattice multiply
 def _lattice_svg(a: int, b: int, fill: bool) -> str:
     """One lattice-multiplication grid: `a`'s digits along the top,
-    `b`'s digits down the right, each cell split by a diagonal into a
-    tens triangle (upper-right) and a units triangle (lower-left). When
-    `fill` is False the cells are left blank for a pupil to complete;
-    when True every cell's partial product is written in."""
+    `b`'s digits down the right, each cell split by a diagonal (bottom-
+    left to top-right) into a tens triangle (upper-left) and a units
+    triangle (lower-right). When `fill` is False the cells are left
+    blank for a pupil to complete; when True every cell's partial
+    product is written in."""
     a_digits = [int(c) for c in str(a)]
     b_digits = [int(c) for c in str(b)]
     cols, rows = len(a_digits), len(b_digits)
@@ -668,23 +669,119 @@ def _lattice_svg(a: int, b: int, fill: bool) -> str:
             x0, y0 = c * cell, top_pad + r * cell
             x1, y1 = x0 + cell, y0 + cell
             svg.append(f'<rect x="{x0}" y="{y0}" width="{cell}" height="{cell}" fill="#fff" stroke="#333" stroke-width="1.5"/>')
-            svg.append(f'<line x1="{x0}" y1="{y0}" x2="{x1}" y2="{y1}" stroke="#333" stroke-width="1"/>')
+            svg.append(f'<line x1="{x0}" y1="{y1}" x2="{x1}" y2="{y0}" stroke="#333" stroke-width="1"/>')
             if fill:
                 product = a_digits[c] * b_digits[r]
                 tens, ones = divmod(product, 10)
-                svg.append(f'<text x="{x0 + cell * 0.7}" y="{y0 + cell * 0.35}" text-anchor="middle" font-size="16" fill="#c0392b">{tens}</text>')
-                svg.append(f'<text x="{x0 + cell * 0.3}" y="{y0 + cell * 0.82}" text-anchor="middle" font-size="16" fill="#2e6da4">{ones}</text>')
+                svg.append(f'<text x="{x0 + cell * 0.32}" y="{y0 + cell * 0.4}" text-anchor="middle" font-size="16" fill="#c0392b">{tens}</text>')
+                svg.append(f'<text x="{x0 + cell * 0.68}" y="{y0 + cell * 0.82}" text-anchor="middle" font-size="16" fill="#2e6da4">{ones}</text>')
+    svg.append("</svg>")
+    return "".join(svg)
+
+
+def _lattice_demo_svg(a: int, b: int) -> str:
+    """A fully worked 2-digit x 2-digit lattice, including the diagonal
+    sums read off around the outside and — wherever one of those sums is
+    10 or more — a curved arrow showing the carry ("exchange") into the
+    next diagonal, the way it's demonstrated by hand."""
+    a_digits = [int(c) for c in str(a)]
+    b_digits = [int(c) for c in str(b)]
+    cols, rows = len(a_digits), len(b_digits)
+    assert cols == 2 and rows == 2, "_lattice_demo_svg only lays out a 2x2 grid"
+    cell = 44
+    top_pad, right_pad, left_pad, bottom_pad = 32, 32, 34, 42
+    grid_w, grid_h = cols * cell, rows * cell
+    width = left_pad + grid_w + right_pad
+    height = top_pad + grid_h + bottom_pad
+    ox, oy = left_pad, top_pad
+
+    svg = [
+        f'<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" '
+        f'xmlns="http://www.w3.org/2000/svg" font-family="inherit">',
+        '<defs><marker id="latarrow" markerWidth="8" markerHeight="8" refX="4" refY="4" '
+        'orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#c0392b"/></marker></defs>',
+    ]
+    for c, d in enumerate(a_digits):
+        x = ox + c * cell + cell / 2
+        svg.append(f'<text x="{x}" y="{oy - 8}" text-anchor="middle" font-size="20" font-weight="bold" fill="#222">{d}</text>')
+    for r, d in enumerate(b_digits):
+        y = oy + r * cell + cell / 2 + 7
+        svg.append(f'<text x="{ox + grid_w + right_pad - 8}" y="{y}" text-anchor="middle" font-size="20" font-weight="bold" fill="#222">{d}</text>')
+
+    products: dict[tuple[int, int], tuple[int, int]] = {}
+    for c in range(cols):
+        for r in range(rows):
+            x0, y0 = ox + c * cell, oy + r * cell
+            x1, y1 = x0 + cell, y0 + cell
+            svg.append(f'<rect x="{x0}" y="{y0}" width="{cell}" height="{cell}" fill="#fff" stroke="#333" stroke-width="1.5"/>')
+            svg.append(f'<line x1="{x0}" y1="{y1}" x2="{x1}" y2="{y0}" stroke="#333" stroke-width="1"/>')
+            product = a_digits[c] * b_digits[r]
+            tens, ones = divmod(product, 10)
+            products[(c, r)] = (tens, ones)
+            svg.append(f'<text x="{x0 + cell * 0.32}" y="{y0 + cell * 0.4}" text-anchor="middle" font-size="16" fill="#c0392b">{tens}</text>')
+            svg.append(f'<text x="{x0 + cell * 0.68}" y="{y0 + cell * 0.82}" text-anchor="middle" font-size="16" fill="#2e6da4">{ones}</text>')
+
+    # Group each cell's two digits onto the diagonal they belong to
+    # (0 = least significant, at the bottom-right corner) and sum each
+    # diagonal, carrying any overflow into the next one up.
+    n_diag = cols + rows
+    diag_sums = [0] * n_diag
+    for (c, r), (tens, ones) in products.items():
+        dist = (cols - 1 - c) + (rows - 1 - r)
+        diag_sums[dist] += ones
+        diag_sums[dist + 1] += tens
+
+    digits, carry, carried_from = [], 0, []
+    for total in diag_sums:
+        combined = total + carry
+        digit, carry = combined % 10, combined // 10
+        digits.append(digit)
+        carried_from.append(carry > 0)
+
+    # For this 2x2 layout: diagonal 0 exits bottom-right, diagonal 1
+    # exits at the bottom's internal gridline, diagonal 2 exits at the
+    # left's internal gridline, diagonal 3 exits top-left.
+    label_y = oy + grid_h + 24
+    label_x = ox - 18
+    anchors = [
+        (ox + grid_w, label_y),
+        (ox + cell, label_y),
+        (label_x, oy + cell + 6),
+        (label_x, oy + 6),
+    ]
+    for i in range(n_diag):
+        x, y = anchors[i] if i < len(anchors) else anchors[-1]
+        svg.append(f'<text x="{x}" y="{y}" text-anchor="middle" font-size="18" font-weight="bold" fill="#222">{digits[i]}</text>')
+
+    for i, did_carry in enumerate(carried_from):
+        if did_carry and i + 1 < n_diag:
+            xa, ya = anchors[i]
+            xb, yb = anchors[i + 1]
+            mx, my = (xa + xb) / 2, min(ya, yb) - 22
+            svg.append(
+                f'<path d="M{xa},{ya - 10} Q{mx},{my} {xb},{yb + 10}" '
+                f'fill="none" stroke="#c0392b" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#latarrow)"/>'
+            )
+            svg.append(f'<text x="{mx}" y="{my - 4}" text-anchor="middle" font-size="12" fill="#c0392b" font-weight="bold">exchange +1</text>')
+
     svg.append("</svg>")
     return "".join(svg)
 
 
 def lattice_multiplication(a: int, b: int, demo_a: int, demo_b: int) -> str:
-    """The question's lattice grid (blank, ready to fill in) next to a
-    fully worked example of a different calculation, so a pupil can see
-    how the method goes before trying their own numbers."""
+    """The question's lattice grid (blank, ready to fill in), set well
+    apart from a fully worked example of a different 2-digit x 2-digit
+    calculation — including its diagonal sums and an "exchange" carry —
+    so a pupil can see how the method goes before trying their own
+    numbers, without mistaking the demo's digits for their own."""
     blank = _lattice_svg(a, b, fill=False)
-    demo = _lattice_svg(demo_a, demo_b, fill=True)
-    inner = f'<div style="display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap;">{blank}{demo}</div>'
+    demo = _lattice_demo_svg(demo_a, demo_b)
+    inner = (
+        f'<div style="display:flex;align-items:flex-start;flex-wrap:wrap;">'
+        f'<div>{blank}</div>'
+        f'<div style="margin-left:90px;padding-left:24px;border-left:2px dashed #ccc;">{demo}</div>'
+        f'</div>'
+    )
     return _wrap(inner)
 
 
