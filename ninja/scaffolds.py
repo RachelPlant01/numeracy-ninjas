@@ -130,6 +130,50 @@ def number_line(
     return _wrap("".join(svg_parts), note)
 
 
+# --------------------------------------------------------------------- numicon
+def _numicon_circle(dashed: bool) -> str:
+    if dashed:
+        return '<div style="width:26px;height:26px;border-radius:50%;background:none;border:2px dashed #999;"></div>'
+    return '<div style="width:26px;height:26px;border-radius:50%;background:#fff;border:2px solid #333;"></div>'
+
+
+def _numicon_plate(n: int, dashed: bool, plate_style: str) -> str:
+    """A Numicon-style shape plate for `n`: a two-column grid of holes
+    filled from the bottom, with an odd leftover hole centred on top —
+    matching the shape-plate pattern used in Numicon resources."""
+    pairs, odd = divmod(n, 2)
+    rows = []
+    if odd:
+        rows.append(f'<div style="display:flex;justify-content:center;">{_numicon_circle(dashed)}</div>')
+    for _ in range(pairs):
+        rows.append(f'<div style="display:flex;gap:4px;justify-content:center;">{_numicon_circle(dashed)}{_numicon_circle(dashed)}</div>')
+    width = 26 * 2 + 4 + 16
+    return (
+        f'<div style="{plate_style}border-radius:14px;padding:8px;display:flex;'
+        f'flex-direction:column;gap:4px;width:{width}px;box-sizing:border-box;align-items:center;">'
+        f'{"".join(rows)}</div>'
+    )
+
+
+def numicon_shape(n: int, color: str) -> str:
+    """A solid, coloured Numicon-style shape plate for `n`."""
+    return _numicon_plate(n, dashed=False, plate_style=f"background:{color};border:2px solid transparent;")
+
+
+def numicon_shape_dashed(n: int) -> str:
+    """A hollow, dashed Numicon-style shape plate for `n` — for a
+    quantity that's there to be worked out, not one already known."""
+    return _numicon_plate(n, dashed=True, plate_style="background:none;border:2px dashed #999;")
+
+
+def numicon_bond(known: int, gap: int) -> str:
+    """A solid, coloured Numicon shape for `known`, next to a hollow
+    dashed one of the same style for the gap still to be worked out."""
+    color = random.choice(["#f2a541", "#5cb85c", "#4a90d9", "#e74c3c", "#a15fd1"])
+    inner = f'<div style="display:flex;align-items:flex-end;gap:16px;">{numicon_shape(known, color)}{numicon_shape_dashed(gap)}</div>'
+    return _wrap(inner)
+
+
 # ------------------------------------------------------------------ ten frame
 def ten_frame_pair(known: int, total: int, note: str | None = None) -> str:
     """Two ten-frames: `known` solid dots, then dashed dots up to `total`."""

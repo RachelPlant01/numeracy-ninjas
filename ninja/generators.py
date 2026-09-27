@@ -541,12 +541,45 @@ def _bond_question(target: int) -> Question:
     return Question(prompt, str(ans), numeric_check(ans), scaffold)
 
 
+def _bond_question_mixed(target: int) -> Question:
+    a = random.randint(0, target)
+    b = target - a
+    style = random.choice(["sum", "first", "second"])
+    if style == "sum":
+        prompt = f"{a} + {b} = ☐"
+        ans = target
+        given, gap = a, b
+    elif style == "first":
+        prompt = f"☐ + {b} = {target}"
+        ans = a
+        given, gap = b, a
+    else:
+        prompt = f"{a} + ☐ = {target}"
+        ans = b
+        given, gap = a, b
+
+    kind = random.choice(["numicon", "number_line", "ten_frame", "dienes"])
+    if kind == "numicon":
+        scaffold = sc.numicon_bond(given, gap)
+    elif kind == "number_line":
+        scaffold = sc.number_line(0, target + 2, jumps=[(given, target, "+?", True)], circle=given)
+    elif kind == "ten_frame":
+        scaffold = sc.ten_frame_pair(given, target)
+    else:
+        scaffold = sc.dienes_partition_near(given, gap)
+    return Question(prompt, str(ans), numeric_check(ans), scaffold)
+
+
 def ms_number_bonds_to_5() -> Question:
     return _bond_question(5)
 
 
 def ms_number_bonds_to_10() -> Question:
     return _bond_question(10)
+
+
+def ms_number_bonds_within_10() -> Question:
+    return _bond_question_mixed(random.choice([6, 7, 8, 9]))
 
 
 def ms_number_bonds_to_20() -> Question:
@@ -902,6 +935,7 @@ MENTAL_STRATEGIES: dict[str, tuple[str, callable]] = {
     "MS10": ("Subtracting 10 from a number", ms_subtract_10),
     "MS28": ("Adding 9 to a number", ms_add_9),
     "MS29": ("Adding within 20, bridging 10", ms_add_within_20_bridge_10),
+    "MS30": ("Number bonds within 10", ms_number_bonds_within_10),
     "MS11": ("Adding multiples of 10 to a number", ms_add_multiples_of_10),
     "MS12": ("Subtracting multiples of 10 from a number", ms_subtract_multiples_of_10),
     "MS13": ("How many to a multiple of 10?", ms_how_many_to_multiple_of_10),
