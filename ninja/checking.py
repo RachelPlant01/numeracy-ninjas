@@ -6,7 +6,7 @@ from fractions import Fraction
 
 
 def _clean(s: str) -> str:
-    return (s or "").strip().lower().replace(" ", "").replace(",", "").replace("£", "")
+    return (s or "").strip().lower().replace(" ", "").replace(",", "").replace("£", "").replace("%", "")
 
 
 def numeric_check(expected, tolerance: float = 0.01):

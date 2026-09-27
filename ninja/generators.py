@@ -453,7 +453,8 @@ def ks_simple_directed_number(lang: str = "en") -> Question:
     op = random.choice(["+", "-"])
     ans = a + b if op == "+" else a - b
     a_str = f"({a})" if a < 0 else str(a)
-    scaffold = sc.number_line(-15, 15, jumps=[(a, ans, ("+" if op == "+" else "-") + str(b), True)], circle=a, hide_value=ans)
+    lo, hi = min(a, ans), max(a, ans)
+    scaffold = sc.number_line(lo - 3, hi + 3, jumps=[(a, ans, ("+" if op == "+" else "-") + str(b), True)], circle=a, hide_value=ans)
     return Question(f"{a_str} {op} {b}", str(ans), numeric_check(ans), scaffold)
 
 
@@ -461,7 +462,8 @@ def ks_add_negative_number(lang: str = "en") -> Question:
     a = random.randint(-15, 15)
     b = random.randint(1, 15)
     ans = a + (-b)
-    scaffold = sc.number_line(-20, 20, jumps=[(a, ans, f"-{b}", True)], circle=a, hide_value=ans)
+    lo, hi = min(a, ans), max(a, ans)
+    scaffold = sc.number_line(lo - 3, hi + 3, jumps=[(a, ans, f"-{b}", True)], circle=a, hide_value=ans)
     return Question(f"{a} + ({-b})", str(ans), numeric_check(ans), scaffold)
 
 
@@ -469,7 +471,8 @@ def ks_subtract_negative_number(lang: str = "en") -> Question:
     a = random.randint(-15, 15)
     b = random.randint(1, 15)
     ans = a - (-b)
-    scaffold = sc.number_line(-20, 20, jumps=[(a, ans, f"+{b}", True)], circle=a, hide_value=ans)
+    lo, hi = min(a, ans), max(a, ans)
+    scaffold = sc.number_line(lo - 3, hi + 3, jumps=[(a, ans, f"+{b}", True)], circle=a, hide_value=ans)
     return Question(f"{a} - ({-b})", str(ans), numeric_check(ans), scaffold)
 
 
