@@ -14,20 +14,104 @@ from ninja.generators import KEY_SKILLS, MENTAL_STRATEGIES
 
 CATEGORIES = {
     "key_skills": {
-        "label": "Key Skills",
-        "description": "Core written arithmetic and number skills.",
         "skills": KEY_SKILLS,
         "n_questions": 5,
     },
     "mental_strategies": {
-        "label": "Mental Strategies",
-        "description": "Quick mental-maths strategies and number sense.",
         "skills": MENTAL_STRATEGIES,
         "n_questions": 10,
     },
 }
 
-st.set_page_config(page_title="BGE Numeracy", page_icon="🧮", layout="centered")
+# Every piece of static interface text, in both languages. Question prompts
+# themselves are translated inside ninja/generators.py (each generator takes
+# a `lang` argument); this dict only covers the app's own chrome.
+UI = {
+    "en": {
+        "app_name": "Matamataig Mìorbhaileach",
+        "subtitle": "Pick a practice zone to get started.",
+        "key_skills_title": "🗝️ Key Skills",
+        "key_skills_desc": "Core written arithmetic and number skills.",
+        "skills_caption": "{n} skills · {q} questions per session",
+        "choose_key_skills": "Choose Key Skills",
+        "mental_strategies_title": "⚡ Mental Strategies",
+        "mental_strategies_desc": "Quick mental-maths strategies and number sense.",
+        "choose_mental_strategies": "Choose Mental Strategies",
+        "back": "← Back",
+        "choose_skill": "Choose the skill you're working on:",
+        "session_info": "You'll do **{n} questions** and we'll time how long it takes.",
+        "show_scaffold": "Show the visual scaffold",
+        "show_scaffold_help": "Turn off to remove the scaffold picture entirely, for pupils working from memory.",
+        "fade_scaffold": "Fade the scaffold after a while",
+        "fade_scaffold_help": "The visual scaffold will automatically hide itself after the chosen time, so pupils move towards working independently.",
+        "fade_seconds_label": "Fade scaffold after (seconds)",
+        "fade_stay_visible": "Scaffold will stay visible for every question.",
+        "start": "Start ▶",
+        "home": "🏠 Home",
+        "question_of": "Question {i} of {n}",
+        "scaffold_hidden": "💭 Scaffold hidden — try it from memory now.",
+        "scaffold_hidden_inline": "Scaffold hidden — try it from memory now.",
+        "answer_placeholder": "Type your answer, then press Enter…",
+        "submit": "Submit ▶",
+        "correct": "Correct! ✅",
+        "not_quite": "Not quite. You wrote **{user}** — the answer was **{ans}**.",
+        "blank": "(blank)",
+        "next_question": "Next question ▶",
+        "session_complete": "## Session complete — {title}",
+        "score": "Score",
+        "time_taken": "Time taken",
+        "practice_again": "🔁 Practice again",
+        "choose_another_skill": "📚 Choose another skill",
+    },
+    "gd": {
+        "app_name": "Matamataig Mìorbhaileach",
+        "subtitle": "Tagh raon cleachdaidh gus tòiseachadh.",
+        "key_skills_title": "🗝️ Prìomh Sgilean",
+        "key_skills_desc": "Àireamhachd sgrìobhte bunasach agus sgilean àireimh.",
+        "skills_caption": "{n} sgilean · {q} ceistean gach seisean",
+        "choose_key_skills": "Tagh Prìomh Sgilean",
+        "mental_strategies_title": "⚡ Ro-innleachdan Inntinn",
+        "mental_strategies_desc": "Ro-innleachdan luath airson àireamhachd na h-inntinn.",
+        "choose_mental_strategies": "Tagh Ro-innleachdan Inntinn",
+        "back": "← Air ais",
+        "choose_skill": "Tagh an sgil air a bheil thu ag obair:",
+        "session_info": "Nì thu **{n} ceistean** agus cuiridh sinn ùine ris.",
+        "show_scaffold": "Seall an dealbh taice",
+        "show_scaffold_help": "Cuir seo dheth gus an dealbh taice a thoirt air falbh gu tur, airson sgoilearan ag obair às an cuimhne.",
+        "fade_scaffold": "Falbh an dealbh taice às dèidh greis",
+        "fade_scaffold_help": "Falbhaidh an dealbh taice às an t-sealladh gu fèin-obrachail às dèidh na h-ùine a thagh thu, gus sgoilearan a ghluasad a dh'ionnsaigh obair neo-eisimeileach.",
+        "fade_seconds_label": "Falbh an dealbh taice às dèidh (diogan)",
+        "fade_stay_visible": "Fanaidh an dealbh taice ri fhaicinn airson gach ceist.",
+        "start": "Tòisich ▶",
+        "home": "🏠 Dhachaigh",
+        "question_of": "Ceist {i} de {n}",
+        "scaffold_hidden": "💭 An dealbh taice falaichte — feuch bhon chuimhne a-nis.",
+        "scaffold_hidden_inline": "An dealbh taice falaichte — feuch bhon chuimhne a-nis.",
+        "answer_placeholder": "Sgrìobh do fhreagairt, an uairsin brùth Enter…",
+        "submit": "Cuir a-steach ▶",
+        "correct": "Ceart! ✅",
+        "not_quite": "Chan eil sin buileach ceart. Sgrìobh thu **{user}** — b' e **{ans}** am freagairt.",
+        "blank": "(bàn)",
+        "next_question": "An ath cheist ▶",
+        "session_complete": "## Seisean deiseil — {title}",
+        "score": "Sgòr",
+        "time_taken": "Ùine a ghabh e",
+        "practice_again": "🔁 Cleachd a-rithist",
+        "choose_another_skill": "📚 Tagh sgil eile",
+    },
+}
+
+
+def tr(key: str, **kwargs) -> str:
+    text = UI[st.session_state.lang][key]
+    return text.format(**kwargs) if kwargs else text
+
+
+def skill_title(skill_entry: dict) -> str:
+    return skill_entry["gd" if st.session_state.lang == "gd" else "en"]
+
+
+st.set_page_config(page_title="Matamataig Mìorbhaileach", page_icon="🧮", layout="centered")
 
 CSS = """
 <style>
@@ -77,13 +161,28 @@ st.markdown(CSS, unsafe_allow_html=True)
 
 
 def banner():
-    st.markdown('<div class="app-banner">🧮 BGE NUMERACY</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="app-banner">🧮 {UI["en"]["app_name"].upper()}</div>', unsafe_allow_html=True)
+
+
+def language_toggle():
+    col_en, col_gd = st.columns(2)
+    with col_en:
+        if st.button("English", use_container_width=True,
+                      type="primary" if st.session_state.lang == "en" else "secondary"):
+            st.session_state.lang = "en"
+            st.rerun()
+    with col_gd:
+        if st.button("Gàidhlig", use_container_width=True,
+                      type="primary" if st.session_state.lang == "gd" else "secondary"):
+            st.session_state.lang = "gd"
+            st.rerun()
 
 
 # ---------------------------------------------------------------- state init
 def init_state():
     defaults = dict(
         stage="landing",
+        lang="en",
         category=None,
         skill_id=None,
         scaffold_enabled=True,
@@ -108,7 +207,7 @@ def go(stage: str):
     st.session_state.stage = stage
 
 
-def generate_question_sequence(gen_fn, n: int, max_attempts: int = 50) -> list:
+def generate_question_sequence(gen_fn, n: int, lang: str, max_attempts: int = 50) -> list:
     """Generate `n` questions, re-rolling a question if its prompt has
     already appeared earlier in this session — so every distinct question a
     skill can produce gets shown before any of them repeat. Some skills only
@@ -117,11 +216,11 @@ def generate_question_sequence(gen_fn, n: int, max_attempts: int = 50) -> list:
     questions = []
     seen_prompts: set[str] = set()
     for _ in range(n):
-        q = gen_fn()
+        q = gen_fn(lang)
         for _ in range(max_attempts):
             if q.prompt not in seen_prompts:
                 break
-            q = gen_fn()
+            q = gen_fn(lang)
         questions.append(q)
         seen_prompts.add(q.prompt)
     return questions
@@ -136,7 +235,7 @@ def fading_scaffold(scaffold_html: str, seconds_remaining: float, key: str):
     st.markdown(
         f'<div id="scaf-{key}">{scaffold_html}</div>'
         f'<div id="faded-{key}" style="display:none;color:#888;font-style:italic;'
-        f'text-align:center;padding:10px;">Scaffold hidden — try it from memory now.</div>',
+        f'text-align:center;padding:10px;">{tr("scaffold_hidden_inline")}</div>',
         unsafe_allow_html=True,
     )
     components.html(
@@ -162,18 +261,19 @@ def focus_answer_input():
     it's only a hint, not a restriction, so the odd answer that needs
     letters (e.g. "Yes"/"No") or symbols is still typeable via the
     keyboard's own switch-keyboard control."""
+    placeholder = tr("answer_placeholder")
     components.html(
-        """
+        f"""
         <script>
-        setTimeout(function() {
+        setTimeout(function() {{
             const el = window.parent.document.querySelector(
-                'input[placeholder="Type your answer, then press Enter…"]'
+                'input[placeholder="{placeholder}"]'
             );
-            if (el) {
+            if (el) {{
                 el.setAttribute('inputmode', 'decimal');
                 el.focus();
-            }
-        }, 80);
+            }}
+        }}, 80);
         </script>
         """,
         height=0,
@@ -184,22 +284,23 @@ def enable_enter_to_advance():
     """Let pupils press Enter to move to the next question instead of
     having to click the button — attaches a document-level listener on the
     parent page and swaps out any listener from a previous render."""
+    next_label = tr("next_question")
     components.html(
-        """
+        f"""
         <script>
-        if (window.parent.__bgeNextHandler) {
+        if (window.parent.__bgeNextHandler) {{
             window.parent.document.removeEventListener('keydown', window.parent.__bgeNextHandler);
-        }
-        window.parent.__bgeNextHandler = function(e) {
+        }}
+        window.parent.__bgeNextHandler = function(e) {{
             if (e.key !== 'Enter') return;
             const btns = window.parent.document.querySelectorAll('button');
-            for (const b of btns) {
-                if (b.innerText.includes('Next question')) {
+            for (const b of btns) {{
+                if (b.innerText.includes('{next_label}')) {{
                     b.click();
                     break;
-                }
-            }
-        };
+                }}
+            }}
+        }};
         window.parent.document.addEventListener('keydown', window.parent.__bgeNextHandler);
         </script>
         """,
@@ -210,21 +311,22 @@ def enable_enter_to_advance():
 # -------------------------------------------------------------------- pages
 def render_landing():
     banner()
-    st.markdown('<div class="app-sub">Pick a practice zone to get started.</div>', unsafe_allow_html=True)
+    language_toggle()
+    st.markdown(f'<div class="app-sub">{tr("subtitle")}</div>', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("### 🗝️ Key Skills")
-        st.write(CATEGORIES["key_skills"]["description"])
-        st.caption(f"{len(KEY_SKILLS)} skills · 5 questions per session")
-        if st.button("Choose Key Skills", use_container_width=True, type="primary"):
+        st.markdown(f"### {tr('key_skills_title')}")
+        st.write(tr("key_skills_desc"))
+        st.caption(tr("skills_caption", n=len(KEY_SKILLS), q=CATEGORIES["key_skills"]["n_questions"]))
+        if st.button(tr("choose_key_skills"), use_container_width=True, type="primary"):
             st.session_state.category = "key_skills"
             go("skill_select")
             st.rerun()
     with col2:
-        st.markdown("### ⚡ Mental Strategies")
-        st.write(CATEGORIES["mental_strategies"]["description"])
-        st.caption(f"{len(MENTAL_STRATEGIES)} skills · 10 questions per session")
-        if st.button("Choose Mental Strategies", use_container_width=True, type="primary"):
+        st.markdown(f"### {tr('mental_strategies_title')}")
+        st.write(tr("mental_strategies_desc"))
+        st.caption(tr("skills_caption", n=len(MENTAL_STRATEGIES), q=CATEGORIES["mental_strategies"]["n_questions"]))
+        if st.button(tr("choose_mental_strategies"), use_container_width=True, type="primary"):
             st.session_state.category = "mental_strategies"
             go("skill_select")
             st.rerun()
@@ -233,16 +335,17 @@ def render_landing():
 def render_skill_select():
     banner()
     cat = CATEGORIES[st.session_state.category]
-    st.subheader(cat["label"])
-    if st.button("← Back"):
+    cat_title = tr("key_skills_title") if st.session_state.category == "key_skills" else tr("mental_strategies_title")
+    st.subheader(cat_title)
+    if st.button(tr("back")):
         go("landing")
         st.rerun()
-    st.write("Choose the skill you're working on:")
+    st.write(tr("choose_skill"))
     skills = cat["skills"]
     ids = list(skills.keys())
     cols = st.columns(2)
     for i, sid in enumerate(ids):
-        title, _fn = skills[sid]
+        title = skill_title(skills[sid])
         with cols[i % 2]:
             if st.button(title, key=f"skill_{sid}", use_container_width=True):
                 st.session_state.skill_id = sid
@@ -253,34 +356,34 @@ def render_skill_select():
 def render_settings():
     banner()
     cat = CATEGORIES[st.session_state.category]
-    title, _fn = cat["skills"][st.session_state.skill_id]
+    title = skill_title(cat["skills"][st.session_state.skill_id])
     st.subheader(title)
-    if st.button("← Back"):
+    if st.button(tr("back")):
         go("skill_select")
         st.rerun()
 
-    st.write(f"You'll do **{cat['n_questions']} questions** and we'll time how long it takes.")
+    st.write(tr("session_info", n=cat["n_questions"]))
 
     st.session_state.scaffold_enabled = st.checkbox(
-        "Show the visual scaffold", value=st.session_state.scaffold_enabled,
-        help="Turn off to remove the scaffold picture entirely, for pupils working from memory.",
+        tr("show_scaffold"), value=st.session_state.scaffold_enabled,
+        help=tr("show_scaffold_help"),
     )
     if st.session_state.scaffold_enabled:
         st.session_state.fade_enabled = st.checkbox(
-            "Fade the scaffold after a while", value=st.session_state.fade_enabled,
-            help="The visual scaffold will automatically hide itself after the chosen time, so pupils move towards working independently.",
+            tr("fade_scaffold"), value=st.session_state.fade_enabled,
+            help=tr("fade_scaffold_help"),
         )
         if st.session_state.fade_enabled:
             st.session_state.fade_seconds = st.slider(
-                "Fade scaffold after (seconds)", min_value=5, max_value=60,
+                tr("fade_seconds_label"), min_value=5, max_value=60,
                 value=st.session_state.fade_seconds, step=5,
             )
         else:
-            st.caption("Scaffold will stay visible for every question.")
+            st.caption(tr("fade_stay_visible"))
 
-    if st.button("Start ▶", type="primary", use_container_width=True):
-        _fn_gen = cat["skills"][st.session_state.skill_id][1]
-        st.session_state.quiz_questions = generate_question_sequence(_fn_gen, cat["n_questions"])
+    if st.button(tr("start"), type="primary", use_container_width=True):
+        _fn_gen = cat["skills"][st.session_state.skill_id]["fn"]
+        st.session_state.quiz_questions = generate_question_sequence(_fn_gen, cat["n_questions"], st.session_state.lang)
         st.session_state.quiz_index = 0
         st.session_state.quiz_results = []
         st.session_state.awaiting_feedback = False
@@ -304,15 +407,15 @@ def render_quiz():
         st.rerun()
         return
 
-    title, _fn = cat["skills"][st.session_state.skill_id]
+    title = skill_title(cat["skills"][st.session_state.skill_id])
     col_home, col_head = st.columns([1, 5])
     with col_home:
-        if st.button("🏠 Home", key=f"home_{idx}"):
+        if st.button(tr("home"), key=f"home_{idx}"):
             go("landing")
             st.rerun()
     with col_head:
         st.markdown(
-            f'<div class="quiz-header"><span>{title}</span><span>Question {idx + 1} of {n}</span></div>',
+            f'<div class="quiz-header"><span>{title}</span><span>{tr("question_of", i=idx + 1, n=n)}</span></div>',
             unsafe_allow_html=True,
         )
     st.progress(idx / n)
@@ -327,7 +430,7 @@ def render_quiz():
             if remaining > 0:
                 fading_scaffold(q.scaffold_html, remaining, key=f"q{idx}")
             else:
-                st.caption("💭 Scaffold hidden — try it from memory now.")
+                st.caption(tr("scaffold_hidden"))
         else:
             st.markdown(q.scaffold_html, unsafe_allow_html=True)
 
@@ -335,9 +438,9 @@ def render_quiz():
         with st.form(key=f"answer_form_{idx}", clear_on_submit=False, enter_to_submit=True):
             user_answer = st.text_input(
                 "Your answer", key=f"input_{idx}",
-                placeholder="Type your answer, then press Enter…", label_visibility="collapsed",
+                placeholder=tr("answer_placeholder"), label_visibility="collapsed",
             )
-            submitted = st.form_submit_button("Submit ▶", type="primary", use_container_width=True)
+            submitted = st.form_submit_button(tr("submit"), type="primary", use_container_width=True)
         focus_answer_input()
         if submitted:
             correct = q.checker(user_answer)
@@ -348,10 +451,10 @@ def render_quiz():
             st.rerun()
     else:
         if st.session_state.last_correct:
-            st.success("Correct! ✅")
+            st.success(tr("correct"))
         else:
-            st.error(f"Not quite. You wrote **{st.session_state.last_user_answer or '(blank)'}** — the answer was **{q.answer_display}**.")
-        if st.button("Next question ▶", type="primary", use_container_width=True):
+            st.error(tr("not_quite", user=st.session_state.last_user_answer or tr("blank"), ans=q.answer_display))
+        if st.button(tr("next_question"), type="primary", use_container_width=True):
             st.session_state.quiz_index += 1
             st.session_state.awaiting_feedback = False
             st.session_state.question_shown_at = time.time()
@@ -362,29 +465,29 @@ def render_quiz():
 def render_results():
     banner()
     cat = CATEGORIES[st.session_state.category]
-    title, _fn = cat["skills"][st.session_state.skill_id]
+    title = skill_title(cat["skills"][st.session_state.skill_id])
     n = cat["n_questions"]
     correct = sum(1 for r in st.session_state.quiz_results if r)
     elapsed = st.session_state.quiz_end_time - st.session_state.quiz_start_time
     mins, secs = divmod(elapsed, 60)
 
-    st.markdown(f"## Session complete — {title}")
+    st.markdown(tr("session_complete", title=title))
     c1, c2 = st.columns(2)
-    c1.metric("Score", f"{correct} / {n}")
-    c2.metric("Time taken", f"{int(mins)}m {secs:04.1f}s")
+    c1.metric(tr("score"), f"{correct} / {n}")
+    c2.metric(tr("time_taken"), f"{int(mins)}m {secs:04.1f}s")
 
     st.divider()
     b1, b2, b3 = st.columns(3)
     with b1:
-        if st.button("🔁 Practice again", use_container_width=True):
+        if st.button(tr("practice_again"), use_container_width=True):
             go("settings")
             st.rerun()
     with b2:
-        if st.button("📚 Choose another skill", use_container_width=True):
+        if st.button(tr("choose_another_skill"), use_container_width=True):
             go("skill_select")
             st.rerun()
     with b3:
-        if st.button("🏠 Home", use_container_width=True):
+        if st.button(tr("home"), use_container_width=True):
             go("landing")
             st.rerun()
 

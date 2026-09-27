@@ -70,8 +70,12 @@ def list_check(expected_numbers: list[int]):
 
 
 def yes_no_check(expected_yes: bool):
-    yes_words = {"yes", "y", "true"}
-    no_words = {"no", "n", "false"}
+    # Gaelic has no single word for "yes"/"no" — "tha" ("is") and "chan eil"
+    # ("is not") are the conventional stand-ins used for this kind of
+    # true/false question, so both languages' words are always accepted
+    # regardless of which one the question happened to be shown in.
+    yes_words = {"yes", "y", "true", "tha"}
+    no_words = {"no", "n", "false", "chaneil"}
 
     def check(user: str) -> bool:
         u = _clean(user)

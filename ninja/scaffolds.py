@@ -1571,7 +1571,7 @@ def _sign_eq_row(s1: str, op: str, s2: str, s3: str) -> str:
     )
 
 
-def sign_rules_table() -> str:
+def sign_rules_table(lang: str = "en") -> str:
     navy, pink = "#1b3a5c", "#e0457b"
 
     def block(border: str, label: str, rows: list[tuple[str, str]]) -> str:
@@ -1591,22 +1591,26 @@ def sign_rules_table() -> str:
         (_sign_eq_row("+", "×", "−", "−"), _sign_eq_row("+", "÷", "−", "−")),
     ]
 
+    multiply_label, divide_label = ("IOMADAICH", "ROINN") if lang == "gd" else ("MULTIPLY", "DIVIDE")
+    same_label = "COMHARRAN COIONANN = DEARBHACH" if lang == "gd" else "SAME SIGNS = POSITIVE"
+    diff_label = "COMHARRAN EU-CHOSMHAIL = ÀICHEIL" if lang == "gd" else "DIFFERENT SIGNS = NEGATIVE"
+
     header = (
         '<div style="display:flex;gap:20px;justify-content:center;font-weight:bold;'
         'font-size:11px;color:#555;margin-bottom:4px;">'
-        '<span>MULTIPLY</span><span>DIVIDE</span></div>'
+        f'<span>{multiply_label}</span><span>{divide_label}</span></div>'
     )
 
     return (
         '<div style="display:flex;flex-direction:column;gap:7px;align-items:center;">'
         + header
-        + block(navy, "SAME SIGNS = POSITIVE", same_rows)
-        + block(pink, "DIFFERENT SIGNS = NEGATIVE", diff_rows)
+        + block(navy, same_label, same_rows)
+        + block(pink, diff_label, diff_rows)
         + "</div>"
     )
 
 
-def negative_sign_scaffold(op: str, sign_x: int, sign_y: int, x_val: int, y_val: int) -> str:
+def negative_sign_scaffold(op: str, sign_x: int, sign_y: int, x_val: int, y_val: int, lang: str = "en") -> str:
     """Rule table (same/different signs) plus a worked example matching the
     question's operation and sign pattern, using fixed demo magnitudes so the
     actual question's answer is never shown."""
@@ -1626,7 +1630,7 @@ def negative_sign_scaffold(op: str, sign_x: int, sign_y: int, x_val: int, y_val:
 
     inner = (
         '<div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">'
-        + sign_rules_table()
+        + sign_rules_table(lang)
         + '<div style="margin-left:6px;padding-left:20px;border-left:2px dashed #ccc;">'
         + example
         + "</div></div>"
