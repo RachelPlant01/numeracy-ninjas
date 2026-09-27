@@ -312,17 +312,19 @@ def ks_simplify_fractions() -> Question:
     n2, d2 = num * g, den * g
     simplest = Fraction(n2, d2)
 
-    # A fixed, generic demo (9/15 -> 3/5) illustrates the method — kept
-    # separate from the question's own numbers so the picture never
-    # gives away the actual simplified answer.
+    # A fixed, generic demo illustrates the method — kept separate from
+    # the question's own numbers so the picture never gives away the
+    # actual simplified answer.
     demo_num, demo_den, demo_scale = 3, 5, 3
-    kind = random.choice(["wall", "circles", "arrows"])
+    kind = random.choice(["wall", "circles", "arrows", "hcf_arrow"])
     if kind == "wall":
         scaffold = sc.fraction_wall_two_rows(demo_num * demo_scale, demo_den * demo_scale, demo_num, demo_den)
     elif kind == "circles":
         scaffold = sc.fraction_circles_pair(demo_num * demo_scale, demo_den * demo_scale, demo_num, demo_den)
-    else:
+    elif kind == "arrows":
         scaffold = sc.fraction_scale_arrows(demo_num, demo_den, demo_scale, direction="down")
+    else:
+        scaffold = sc.fraction_simplify_single_arrow(24, 16)
 
     prompt = f"Write {sc.fraction_html(n2, d2)} in its simplest form"
     return Question(prompt, f"{simplest.numerator}/{simplest.denominator}", fraction_check(simplest), scaffold)

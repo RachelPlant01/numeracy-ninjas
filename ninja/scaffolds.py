@@ -805,10 +805,10 @@ def fraction_scale_arrows(num: int, den: int, scale: int, direction: str = "up")
         left_n, left_d = num * scale, den * scale
         right_n, right_d = num, den
         op = "÷"
-    width, height = 260, 150
+    width, height = 260, 170
     x1, x2 = 60, 200
-    y_num, y_line, y_den = 45, 55, 90
-    top_arc_y, bot_arc_y = 25, 120
+    y_num, y_line, y_den = 60, 70, 105
+    top_arc_y, bot_arc_y = 20, 148
     mid_x = (x1 + x2) / 2
 
     def frac_block(x: float, n: int, d: int) -> str:
@@ -826,13 +826,21 @@ def fraction_scale_arrows(num: int, den: int, scale: int, direction: str = "up")
         frac_block(x1, left_n, left_d),
         f'<text x="{mid_x}" y="{y_line + 8}" text-anchor="middle" font-size="26" font-weight="bold" fill="#222">=</text>',
         frac_block(x2, right_n, right_d),
-        f'<path d="M{x1},{y_num - 14} Q{mid_x},{top_arc_y} {x2},{y_num - 14}" fill="none" stroke="#c0392b" stroke-width="2" marker-end="url(#fracarrow)"/>',
+        f'<path d="M{x1},{y_num - 28} Q{mid_x},{top_arc_y} {x2},{y_num - 28}" fill="none" stroke="#c0392b" stroke-width="2" marker-end="url(#fracarrow)"/>',
         f'<text x="{mid_x}" y="{top_arc_y - 6}" text-anchor="middle" font-size="14" fill="#c0392b" font-weight="bold">{op}{scale}</text>',
-        f'<path d="M{x1},{y_den + 28} Q{mid_x},{bot_arc_y} {x2},{y_den + 28}" fill="none" stroke="#c0392b" stroke-width="2" marker-end="url(#fracarrow)"/>',
+        f'<path d="M{x1},{y_den + 26} Q{mid_x},{bot_arc_y} {x2},{y_den + 26}" fill="none" stroke="#c0392b" stroke-width="2" marker-end="url(#fracarrow)"/>',
         f'<text x="{mid_x}" y="{bot_arc_y + 18}" text-anchor="middle" font-size="14" fill="#c0392b" font-weight="bold">{op}{scale}</text>',
         "</svg>",
     ]
     return _wrap("".join(svg))
+
+
+def fraction_simplify_single_arrow(big_num: int, big_den: int) -> str:
+    """An unsimplified fraction going straight to its simplest form in one
+    step — a single ÷HCF arrow pair, rather than a multi-step chain of
+    smaller common factors."""
+    hcf = math.gcd(big_num, big_den)
+    return fraction_scale_arrows(big_num // hcf, big_den // hcf, hcf, direction="down")
 
 
 # ------------------------------------------------------------ near doubles
