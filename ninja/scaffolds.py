@@ -622,10 +622,10 @@ def fraction_html(num, den) -> str:
     writing it as plain `num/den` text."""
     return (
         '<span style="display:inline-flex;flex-direction:column;align-items:center;'
-        'vertical-align:middle;line-height:1.15;margin:0 8px;">'
-        f'<span>{num}</span>'
-        '<span style="border-top:4px solid currentColor;width:100%;">&nbsp;</span>'
-        f'<span>{den}</span></span>'
+        'vertical-align:middle;margin:0 8px;">'
+        f'<span style="line-height:1;">{num}</span>'
+        '<span style="border-top:4px solid currentColor;width:100%;line-height:1;">&nbsp;</span>'
+        f'<span style="line-height:1;">{den}</span></span>'
     )
 
 
