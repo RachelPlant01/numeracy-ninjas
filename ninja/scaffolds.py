@@ -615,6 +615,122 @@ def fraction_array(total: int, den: int, num: int) -> str:
     return _wrap(inner)
 
 
+# ------------------------------------------------------- equivalent fractions
+def fraction_html(num, den) -> str:
+    """An inline "true" fraction — numerator stacked over denominator
+    with a bar — for embedding directly in a question prompt instead of
+    writing it as plain `num/den` text."""
+    return (
+        '<span style="display:inline-flex;flex-direction:column;align-items:center;'
+        'vertical-align:middle;line-height:1.15;margin:0 8px;">'
+        f'<span>{num}</span>'
+        '<span style="border-top:4px solid currentColor;width:100%;">&nbsp;</span>'
+        f'<span>{den}</span></span>'
+    )
+
+
+def fraction_equation_html(left_num, left_den, right_num, right_den) -> str:
+    """A full `a/b = c/d` question line built from stacked `fraction_html`
+    fractions, all wrapped in one flex row so the "=" sign lines up with
+    the fraction bars instead of the browser's default baseline (which
+    otherwise sits the "=" awkwardly against the numerator alone)."""
+    return (
+        '<span style="display:inline-flex;align-items:center;justify-content:center;">'
+        f'{fraction_html(left_num, left_den)}'
+        '<span style="margin:0 6px;">=</span>'
+        f'{fraction_html(right_num, right_den)}'
+        '</span>'
+    )
+
+
+def fraction_wall_two_rows(num1: int, den1: int, num2: int, den2: int) -> str:
+    """A two-row fraction wall: both rows are the same total length, the
+    top row split into `den1` equal parts with `num1` shaded, the
+    bottom row split into `den2` equal parts with `num2` shaded — so
+    the matching shaded length shows the two fractions are equal."""
+    total_w = 320
+    row_h = 40
+
+    def row(n: int, d: int) -> str:
+        seg_w = total_w / d
+        cells = [
+            f'<div style="width:{seg_w}px;height:{row_h}px;background:{"#a3c9f9" if i < n else "#fff"};'
+            f'border:1px solid #333;box-sizing:border-box;"></div>'
+            for i in range(d)
+        ]
+        return f'<div style="display:flex;width:{total_w}px;">{"".join(cells)}</div>'
+
+    inner = f'<div style="display:flex;flex-direction:column;gap:6px;">{row(num1, den1)}{row(num2, den2)}</div>'
+    return _wrap(inner)
+
+
+def _pie_svg(num: int, den: int, r: int = 50) -> str:
+    cx = cy = r + 4
+    size = 2 * (r + 4)
+    parts = [f'<svg width="{size}" height="{size}" viewBox="0 0 {size} {size}">']
+    for i in range(den):
+        a0 = math.radians(-90 + i * 360 / den)
+        a1 = math.radians(-90 + (i + 1) * 360 / den)
+        x0, y0 = cx + r * math.cos(a0), cy + r * math.sin(a0)
+        x1, y1 = cx + r * math.cos(a1), cy + r * math.sin(a1)
+        large = 1 if (360 / den) > 180 else 0
+        fill = "#a3c9f9" if i < num else "#fff"
+        parts.append(f'<path d="M{cx},{cy} L{x0:.2f},{y0:.2f} A{r},{r} 0 {large} 1 {x1:.2f},{y1:.2f} Z" fill="{fill}" stroke="#333" stroke-width="1.5"/>')
+    parts.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="#333" stroke-width="2"/>')
+    parts.append("</svg>")
+    return "".join(parts)
+
+
+def fraction_circles_pair(num1: int, den1: int, num2: int, den2: int) -> str:
+    """Two shaded circles side by side (the first split into `den1`
+    slices with `num1` shaded, the second into `den2` slices with
+    `num2` shaded) joined by an "=" — the same shaded amount shown
+    two different ways."""
+    inner = (
+        f'<div style="display:flex;align-items:center;gap:20px;">'
+        f'{_pie_svg(num1, den1)}'
+        f'<div style="font-size:1.8rem;font-weight:800;">=</div>'
+        f'{_pie_svg(num2, den2)}'
+        f'</div>'
+    )
+    return _wrap(inner)
+
+
+def fraction_scale_arrows(num: int, den: int, scale: int) -> str:
+    """`num/den` and its scaled-up equivalent side by side, with a
+    curved arrow above joining the two numerators and one below joining
+    the two denominators, each labelled with the scale factor."""
+    num2, den2 = num * scale, den * scale
+    width, height = 260, 150
+    x1, x2 = 60, 200
+    y_num, y_line, y_den = 45, 55, 90
+    top_arc_y, bot_arc_y = 25, 120
+    mid_x = (x1 + x2) / 2
+
+    def frac_block(x: float, n: int, d: int) -> str:
+        return (
+            f'<text x="{x}" y="{y_num}" text-anchor="middle" font-size="26" font-weight="bold" fill="#222">{n}</text>'
+            f'<line x1="{x - 16}" y1="{y_line}" x2="{x + 16}" y2="{y_line}" stroke="#222" stroke-width="2.5"/>'
+            f'<text x="{x}" y="{y_den + 22}" text-anchor="middle" font-size="26" font-weight="bold" fill="#222">{d}</text>'
+        )
+
+    svg = [
+        f'<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" '
+        f'xmlns="http://www.w3.org/2000/svg" font-family="inherit">',
+        '<defs><marker id="fracarrow" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" '
+        'orient="auto"><path d="M0,0 L7,3.5 L0,7 z" fill="#c0392b"/></marker></defs>',
+        frac_block(x1, num, den),
+        f'<text x="{mid_x}" y="{y_line + 8}" text-anchor="middle" font-size="26" font-weight="bold" fill="#222">=</text>',
+        frac_block(x2, num2, den2),
+        f'<path d="M{x1},{y_num - 14} Q{mid_x},{top_arc_y} {x2},{y_num - 14}" fill="none" stroke="#c0392b" stroke-width="2" marker-end="url(#fracarrow)"/>',
+        f'<text x="{mid_x}" y="{top_arc_y - 6}" text-anchor="middle" font-size="14" fill="#c0392b" font-weight="bold">×{scale}</text>',
+        f'<path d="M{x1},{y_den + 28} Q{mid_x},{bot_arc_y} {x2},{y_den + 28}" fill="none" stroke="#c0392b" stroke-width="2" marker-end="url(#fracarrow)"/>',
+        f'<text x="{mid_x}" y="{bot_arc_y + 18}" text-anchor="middle" font-size="14" fill="#c0392b" font-weight="bold">×{scale}</text>',
+        "</svg>",
+    ]
+    return _wrap("".join(svg))
+
+
 # ------------------------------------------------------------ near doubles
 def near_doubles_dienes(lo: int, extra: int) -> str:
     """Base-ten blocks for `lo`, then the same rods and unit cubes again

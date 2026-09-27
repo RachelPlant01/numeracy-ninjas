@@ -439,12 +439,24 @@ def ks_equivalent_fractions() -> Question:
         den = random.randint(num + 1, 9)
     scale = random.randint(2, 6)
     missing_side = random.choice(["den", "num"])
-    scaffold = sc.bar_model(f"{num}/{den}", [("", 1)] * den, note=f"Whatever you multiply the bottom by, multiply the top by the same number (×{scale}).")
+
+    # A fixed, generic demo (3/5 = 9/15) illustrates the method — kept
+    # separate from the question's own numbers so the picture never
+    # gives away the actual missing value.
+    demo_num, demo_den, demo_scale = 3, 5, 3
+    kind = random.choice(["wall", "circles", "arrows"])
+    if kind == "wall":
+        scaffold = sc.fraction_wall_two_rows(demo_num, demo_den, demo_num * demo_scale, demo_den * demo_scale)
+    elif kind == "circles":
+        scaffold = sc.fraction_circles_pair(demo_num, demo_den, demo_num * demo_scale, demo_den * demo_scale)
+    else:
+        scaffold = sc.fraction_scale_arrows(demo_num, demo_den, demo_scale)
+
     if missing_side == "den":
-        prompt = f"{num}/{den} = {num*scale}/☐"
+        prompt = sc.fraction_equation_html(num, den, num * scale, "☐")
         ans = den * scale
     else:
-        prompt = f"{num}/{den} = ☐/{den*scale}"
+        prompt = sc.fraction_equation_html(num, den, "☐", den * scale)
         ans = num * scale
     return Question(prompt, str(ans), numeric_check(ans), scaffold)
 
