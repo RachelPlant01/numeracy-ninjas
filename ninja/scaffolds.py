@@ -377,22 +377,19 @@ def _dienes_row(n: int) -> str:
 
 def dienes_bonds_to_100(known: int) -> str:
     """`known` built solid with Dienes blocks, then the gap up to 100
-    shown as dashed (countable) rods and cubes — solid rods stacked
-    above dashed rods, and the solid and dashed unit cubes sharing one
-    row at the bottom, rather than each amount getting its own
-    separate block."""
+    shown as dashed (countable) rods and cubes: the solid rods first,
+    then the ones row (solid and dashed cubes together), then the rest
+    of the dashed rods underneath that."""
     gap = 100 - known
     k_tens, k_ones = divmod(known, 10)
     g_tens, g_ones = divmod(gap, 10)
 
-    rods_html = (
-        "".join(f'<div>{_dienes_rod()}</div>' for _ in range(k_tens))
-        + "".join(f'<div>{_dienes_rod_greyed()}</div>' for _ in range(g_tens))
-    )
+    solid_rods_html = "".join(f'<div>{_dienes_rod()}</div>' for _ in range(k_tens))
+    dashed_rods_html = "".join(f'<div>{_dienes_rod_greyed()}</div>' for _ in range(g_tens))
     ones_cells = [_dienes_cube() for _ in range(k_ones)] + [_dienes_cube_dashed() for _ in range(g_ones)]
     ones_html = _dienes_cube_row(ones_cells)
 
-    inner = f'<div style="display:flex;flex-direction:column;gap:3px;">{rods_html}{ones_html}</div>'
+    inner = f'<div style="display:flex;flex-direction:column;gap:3px;">{solid_rods_html}{ones_html}{dashed_rods_html}</div>'
     return _wrap(inner)
 
 
