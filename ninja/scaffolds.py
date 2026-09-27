@@ -716,9 +716,10 @@ def fraction_html(num, den) -> str:
     return (
         '<span style="display:inline-flex;flex-direction:column;align-items:center;'
         'vertical-align:middle;margin:0 8px;">'
-        f'<span style="line-height:1;">{num}</span>'
-        '<span style="border-top:4px solid currentColor;width:100%;line-height:1;">&nbsp;</span>'
-        f'<span style="line-height:1;">{den}</span></span>'
+        f'<span style="line-height:1.1;">{num}</span>'
+        '<span style="border-top:4px solid currentColor;width:100%;height:0;'
+        'font-size:0;line-height:0;">&nbsp;</span>'
+        f'<span style="line-height:1.1;">{den}</span></span>'
     )
 
 
