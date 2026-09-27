@@ -560,7 +560,7 @@ def ms_number_bonds_to_20() -> Question:
 def ms_number_bonds_to_100() -> Question:
     known = random.choice(range(1, 100, 1))
     ans = 100 - known
-    scaffold = sc.number_line(0, 100, jumps=[(known, 100, "+?", True)], circle=known)
+    scaffold = sc.dienes_bonds_to_100(known)
     return Question(f"{known} + ☐ = 100", str(ans), numeric_check(ans), scaffold)
 
 

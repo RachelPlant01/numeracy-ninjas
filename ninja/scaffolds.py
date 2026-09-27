@@ -375,6 +375,28 @@ def _dienes_row(n: int) -> str:
     return f'<div style="display:flex;flex-direction:column;gap:3px;">{rods_html}{ones_html}</div>'
 
 
+def _dienes_row_dashed(n: int) -> str:
+    """Like `_dienes_row`, but drawn as hollow, dashed rods and cubes —
+    for a count that's there to be worked out and counted, not one
+    that's already known."""
+    tens, ones = divmod(n, 10)
+    rod = _dienes_rod_greyed()
+    cube = _dienes_cube_dashed()
+    rods_html = "".join(f'<div>{rod}</div>' for _ in range(tens))
+    ones_html = _dienes_cube_row([cube for _ in range(ones)])
+    return f'<div style="display:flex;flex-direction:column;gap:3px;">{rods_html}{ones_html}</div>'
+
+
+def dienes_bonds_to_100(known: int) -> str:
+    """`known` built solid with Dienes blocks, then the gap up to 100
+    shown as dashed (countable) rods and cubes, grouped the same way —
+    so a pupil can see exactly how much further there is to go."""
+    solid = _dienes_row(known)
+    dashed = _dienes_row_dashed(100 - known)
+    inner = f'<div style="display:flex;flex-direction:column;gap:16px;">{solid}{dashed}</div>'
+    return _wrap(inner)
+
+
 def _dienes_full(n: int) -> str:
     """Base-ten blocks for any `n`, with every ten ten-rods regrouped into
     a hundred-flat — so a number that crosses 100 reads as flats + rods +
