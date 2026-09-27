@@ -577,7 +577,10 @@ def ks_fraction_of_amount(lang: str = "en") -> Question:
     unit = random.randint(2, 20)
     total = unit * den
     ans = unit * num
-    scaffold = sc.bar_model(str(total), [("", 1)] * den, single_color="#a3c9f9")
+    if random.choice(["bar", "array"]) == "bar":
+        scaffold = sc.bar_model(str(total), [("", 1)] * den, single_color="#a3c9f9")
+    else:
+        scaffold = sc.fraction_array(total, den, num)
     prompt = _t(f"What is {num}/{den} of {total}?", f"Dè a th' ann an {num}/{den} de {total}?", lang)
     return Question(prompt, str(ans), numeric_check(ans), scaffold)
 
@@ -586,13 +589,7 @@ def ks_percentage_of_amount(lang: str = "en") -> Question:
     amount = random.choice([20, 40, 50, 60, 80, 100, 120, 150, 200, 240, 300])
     pct = random.choice([5, 10, 15, 20, 25, 30, 40, 50, 75, 10])
     ans = round(amount * pct / 100, 2)
-    ten_pct = amount / 10
-    scaffold = sc.hint_list([
-        _t(f"Find 10% of {amount} first: {amount} ÷ 10 = {ten_pct:g}",
-           f"Lorg 10% de {amount} an toiseach: {amount} ÷ 10 = {ten_pct:g}", lang),
-        _t(f"Scale that up (or halve it) to get {pct}%.",
-           f"Sgèilich sin suas (no gabh leth dheth) gus {pct}% fhaighinn.", lang),
-    ])
+    scaffold = sc.bar_model(f"£{amount}", [(f"{pct}%", pct), ("", 100 - pct)], single_color="#a3c9f9")
     prompt = _t(f"What is {pct}% of £{amount}?", f"Dè a th' ann an {pct}% de £{amount}?", lang)
     return Question(prompt, f"£{_fmt(ans)}", numeric_check(ans, 0.5), scaffold)
 
