@@ -567,14 +567,17 @@ def halving_columns(n: int) -> str:
 
 
 # -------------------------------------------------------------------- bar model
-def bar_model(whole_label: str, parts: list[tuple[str, float]], note: str | None = None) -> str:
-    """parts: list of (label, weight) — rendered as proportional segments."""
+def bar_model(whole_label: str, parts: list[tuple[str, float]], note: str | None = None, single_color: str | None = None) -> str:
+    """parts: list of (label, weight) — rendered as proportional segments.
+    Pass `single_color` to fill every segment the same colour instead of
+    cycling through the default palette (e.g. when the segments are all
+    equal, same-sized parts rather than distinct labelled quantities)."""
     total_weight = sum(w for _, w in parts) or 1
     colors = ["#f6c453", "#a3c9f9", "#b7e4c7", "#f7a5a5", "#d8bfd8"]
     segs = []
     for i, (label, w) in enumerate(parts):
         pct = 100 * w / total_weight
-        color = colors[i % len(colors)]
+        color = single_color if single_color else colors[i % len(colors)]
         segs.append(
             f'<div style="width:{pct}%;background:{color};border:1px solid #333;'
             f'display:flex;align-items:center;justify-content:center;min-height:44px;'
@@ -587,6 +590,29 @@ def bar_model(whole_label: str, parts: list[tuple[str, float]], note: str | None
     )
     bottom = f'<div style="display:flex;width:100%;">{"".join(segs)}</div>'
     return _wrap(f'<div style="display:flex;flex-direction:column;gap:4px;">{top}{bottom}</div>', note)
+
+
+def fraction_array(total: int, den: int, num: int) -> str:
+    """`den` equal columns of dots (each holding `total / den` items),
+    all the same colour, with a pill-shaped outline drawn around the
+    first `num` of them — the array-model equivalent of the bar model,
+    with no numbers printed on the picture itself."""
+    unit = total // den
+    cell = 22
+    dot = f'<svg width="{cell}" height="{cell}"><circle cx="{cell / 2}" cy="{cell / 2}" r="{cell / 2 - 3}" fill="#e74c3c"/></svg>'
+
+    def column() -> str:
+        return f'<div style="display:flex;flex-direction:column;gap:2px;">{dot * unit}</div>'
+
+    selected = "".join(f'<div style="margin-right:8px;">{column()}</div>' for _ in range(num))
+    rest = "".join(f'<div style="margin-right:8px;">{column()}</div>' for _ in range(den - num))
+    inner = (
+        f'<div style="display:flex;align-items:center;">'
+        f'<div style="display:flex;border:3px solid #2c7fb8;border-radius:40px;padding:6px 10px;margin-right:12px;">{selected}</div>'
+        f'<div style="display:flex;">{rest}</div>'
+        f'</div>'
+    )
+    return _wrap(inner)
 
 
 # ------------------------------------------------------------ near doubles
