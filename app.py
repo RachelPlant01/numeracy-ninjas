@@ -157,7 +157,11 @@ def fading_scaffold(scaffold_html: str, seconds_remaining: float, key: str):
 
 def focus_answer_input():
     """Put the cursor in the answer box automatically, so pupils can start
-    typing straight away without clicking into it first."""
+    typing straight away without clicking into it first. Also hints a
+    numeric keypad on mobile/tablet (most answers are plain numbers) —
+    it's only a hint, not a restriction, so the odd answer that needs
+    letters (e.g. "Yes"/"No") or symbols is still typeable via the
+    keyboard's own switch-keyboard control."""
     components.html(
         """
         <script>
@@ -165,7 +169,10 @@ def focus_answer_input():
             const el = window.parent.document.querySelector(
                 'input[placeholder="Type your answer, then press Enter…"]'
             );
-            if (el) el.focus();
+            if (el) {
+                el.setAttribute('inputmode', 'decimal');
+                el.focus();
+            }
         }, 80);
         </script>
         """,
