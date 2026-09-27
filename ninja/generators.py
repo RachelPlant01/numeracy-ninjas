@@ -311,8 +311,21 @@ def ks_simplify_fractions() -> Question:
         den = random.randint(num + 1, 12)
     n2, d2 = num * g, den * g
     simplest = Fraction(n2, d2)
-    scaffold = sc.hint_list([f"Find a common factor of {n2} and {d2}.", "Divide top and bottom by it, repeat until you can't simplify further."])
-    return Question(f"Write {n2}/{d2} in its simplest form", f"{simplest.numerator}/{simplest.denominator}", fraction_check(simplest), scaffold)
+
+    # A fixed, generic demo (9/15 -> 3/5) illustrates the method — kept
+    # separate from the question's own numbers so the picture never
+    # gives away the actual simplified answer.
+    demo_num, demo_den, demo_scale = 3, 5, 3
+    kind = random.choice(["wall", "circles", "arrows"])
+    if kind == "wall":
+        scaffold = sc.fraction_wall_two_rows(demo_num * demo_scale, demo_den * demo_scale, demo_num, demo_den)
+    elif kind == "circles":
+        scaffold = sc.fraction_circles_pair(demo_num * demo_scale, demo_den * demo_scale, demo_num, demo_den)
+    else:
+        scaffold = sc.fraction_scale_arrows(demo_num, demo_den, demo_scale, direction="down")
+
+    prompt = f"Write {sc.fraction_html(n2, d2)} in its simplest form"
+    return Question(prompt, f"{simplest.numerator}/{simplest.denominator}", fraction_check(simplest), scaffold)
 
 
 def ks_round_to_decimal_places() -> Question:

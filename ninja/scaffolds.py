@@ -789,11 +789,21 @@ def fraction_circles_pair(num1: int, den1: int, num2: int, den2: int) -> str:
     return _wrap(inner)
 
 
-def fraction_scale_arrows(num: int, den: int, scale: int) -> str:
-    """`num/den` and its scaled-up equivalent side by side, with a
-    curved arrow above joining the two numerators and one below joining
-    the two denominators, each labelled with the scale factor."""
-    num2, den2 = num * scale, den * scale
+def fraction_scale_arrows(num: int, den: int, scale: int, direction: str = "up") -> str:
+    """`num/den` and its scaled equivalent side by side, with a curved
+    arrow above joining the two numerators and one below joining the two
+    denominators, each labelled with the scale factor. `direction="up"`
+    scales `num/den` up (×scale, left→right); `direction="down"` starts
+    from the larger, unsimplified fraction and simplifies down (÷scale,
+    left→right)."""
+    if direction == "up":
+        left_n, left_d = num, den
+        right_n, right_d = num * scale, den * scale
+        op = "×"
+    else:
+        left_n, left_d = num * scale, den * scale
+        right_n, right_d = num, den
+        op = "÷"
     width, height = 260, 150
     x1, x2 = 60, 200
     y_num, y_line, y_den = 45, 55, 90
@@ -812,13 +822,13 @@ def fraction_scale_arrows(num: int, den: int, scale: int) -> str:
         f'xmlns="http://www.w3.org/2000/svg" font-family="inherit">',
         '<defs><marker id="fracarrow" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" '
         'orient="auto"><path d="M0,0 L7,3.5 L0,7 z" fill="#c0392b"/></marker></defs>',
-        frac_block(x1, num, den),
+        frac_block(x1, left_n, left_d),
         f'<text x="{mid_x}" y="{y_line + 8}" text-anchor="middle" font-size="26" font-weight="bold" fill="#222">=</text>',
-        frac_block(x2, num2, den2),
+        frac_block(x2, right_n, right_d),
         f'<path d="M{x1},{y_num - 14} Q{mid_x},{top_arc_y} {x2},{y_num - 14}" fill="none" stroke="#c0392b" stroke-width="2" marker-end="url(#fracarrow)"/>',
-        f'<text x="{mid_x}" y="{top_arc_y - 6}" text-anchor="middle" font-size="14" fill="#c0392b" font-weight="bold">×{scale}</text>',
+        f'<text x="{mid_x}" y="{top_arc_y - 6}" text-anchor="middle" font-size="14" fill="#c0392b" font-weight="bold">{op}{scale}</text>',
         f'<path d="M{x1},{y_den + 28} Q{mid_x},{bot_arc_y} {x2},{y_den + 28}" fill="none" stroke="#c0392b" stroke-width="2" marker-end="url(#fracarrow)"/>',
-        f'<text x="{mid_x}" y="{bot_arc_y + 18}" text-anchor="middle" font-size="14" fill="#c0392b" font-weight="bold">×{scale}</text>',
+        f'<text x="{mid_x}" y="{bot_arc_y + 18}" text-anchor="middle" font-size="14" fill="#c0392b" font-weight="bold">{op}{scale}</text>',
         "</svg>",
     ]
     return _wrap("".join(svg))
