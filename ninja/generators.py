@@ -413,12 +413,7 @@ def ks_round_to_decimal_places(lang: str = "en") -> Question:
     dp_source = round(random.uniform(1, 99), 4)
     dp = random.randint(1, 3)
     ans = round(dp_source, dp)
-    scaffold = sc.hint_list([
-        _t(f"Look at the digit after the {dp} decimal place you're rounding to.",
-           f"Seall air an fhigear às dèidh an {dp} àite dheicheach a tha thu a' cuairteachadh gu ruige.", lang),
-        _t("5 or more → round up. Less than 5 → stays the same.",
-           "5 no barrachd → cuairtich suas. Nas lugha na 5 → fuirich mar a tha e.", lang),
-    ])
+    scaffold = sc.rounding_number_line(dp_source, dp)
     prompt = _t(f"Round {dp_source} to {dp} decimal place{'s' if dp > 1 else ''}",
                 f"Cuairtich {dp_source} gu {dp} àite dheicheach", lang)
     return Question(prompt, _fmt(ans), numeric_check(ans, 10 ** (-dp) / 2), scaffold)

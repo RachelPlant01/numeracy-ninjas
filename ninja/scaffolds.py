@@ -130,6 +130,43 @@ def number_line(
     return _wrap("".join(svg_parts), note)
 
 
+def rounding_number_line(value: float, dp: int) -> str:
+    """A short number line spanning just the two values `value` could
+    round to at `dp` decimal places (e.g. 23.64 to 23.65), with `value`
+    itself marked at its true proportional position between them, and
+    the midpoint labelled as the "5 or more rounds up" landmark. Never
+    states which end it rounds to — that's for the pupil to read off."""
+    scale = 10 ** dp
+    lower = math.floor(value * scale) / scale
+    upper = lower + 1 / scale
+    mid = (lower + upper) / 2
+
+    width, height, pad = 420, 110, 50
+    usable = width - 2 * pad
+
+    def x(v: float) -> float:
+        return pad + (v - lower) / (upper - lower) * usable
+
+    y_line = height - 42
+    xv, xm = x(value), x(mid)
+
+    parts = [
+        f'<svg viewBox="0 0 {width} {height}" width="100%" height="{height}" '
+        f'xmlns="http://www.w3.org/2000/svg" font-family="inherit">',
+        f'<line x1="{pad}" y1="{y_line}" x2="{width-pad}" y2="{y_line}" stroke="#222" stroke-width="2"/>',
+        f'<line x1="{pad}" y1="{y_line-9}" x2="{pad}" y2="{y_line+9}" stroke="#222" stroke-width="2.5"/>',
+        f'<line x1="{width-pad}" y1="{y_line-9}" x2="{width-pad}" y2="{y_line+9}" stroke="#222" stroke-width="2.5"/>',
+        f'<text x="{pad}" y="{y_line+28}" text-anchor="middle" font-size="15" font-weight="bold" fill="#222">{lower:.{dp}f}</text>',
+        f'<text x="{width-pad}" y="{y_line+28}" text-anchor="middle" font-size="15" font-weight="bold" fill="#222">{upper:.{dp}f}</text>',
+        f'<line x1="{xm}" y1="{y_line-6}" x2="{xm}" y2="{y_line+6}" stroke="#999" stroke-width="1.5"/>',
+        f'<text x="{xm}" y="{y_line+24}" text-anchor="middle" font-size="11" fill="#999">{mid:.{dp+1}f}</text>',
+        f'<circle cx="{xv:.1f}" cy="{y_line}" r="6" fill="#c0392b"/>',
+        f'<text x="{xv:.1f}" y="{y_line-14}" text-anchor="middle" font-size="14" font-weight="bold" fill="#c0392b">{value:g}</text>',
+        "</svg>",
+    ]
+    return _wrap("".join(parts))
+
+
 # --------------------------------------------------------------------- numicon
 def _numicon_circle(dashed: bool) -> str:
     if dashed:
