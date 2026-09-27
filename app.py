@@ -86,6 +86,7 @@ def init_state():
         stage="landing",
         category=None,
         skill_id=None,
+        scaffold_enabled=True,
         fade_enabled=True,
         fade_seconds=15,
         quiz_questions=[],
@@ -253,17 +254,22 @@ def render_settings():
 
     st.write(f"You'll do **{cat['n_questions']} questions** and we'll time how long it takes.")
 
-    st.session_state.fade_enabled = st.checkbox(
-        "Fade the scaffold after a while", value=st.session_state.fade_enabled,
-        help="The visual scaffold will automatically hide itself after the chosen time, so pupils move towards working independently.",
+    st.session_state.scaffold_enabled = st.checkbox(
+        "Show the visual scaffold", value=st.session_state.scaffold_enabled,
+        help="Turn off to remove the scaffold picture entirely, for pupils working from memory.",
     )
-    if st.session_state.fade_enabled:
-        st.session_state.fade_seconds = st.slider(
-            "Fade scaffold after (seconds)", min_value=5, max_value=60,
-            value=st.session_state.fade_seconds, step=5,
+    if st.session_state.scaffold_enabled:
+        st.session_state.fade_enabled = st.checkbox(
+            "Fade the scaffold after a while", value=st.session_state.fade_enabled,
+            help="The visual scaffold will automatically hide itself after the chosen time, so pupils move towards working independently.",
         )
-    else:
-        st.caption("Scaffold will stay visible for every question.")
+        if st.session_state.fade_enabled:
+            st.session_state.fade_seconds = st.slider(
+                "Fade scaffold after (seconds)", min_value=5, max_value=60,
+                value=st.session_state.fade_seconds, step=5,
+            )
+        else:
+            st.caption("Scaffold will stay visible for every question.")
 
     if st.button("Start ▶", type="primary", use_container_width=True):
         _fn_gen = cat["skills"][st.session_state.skill_id][1]
@@ -307,15 +313,16 @@ def render_quiz():
     q = st.session_state.quiz_questions[idx]
     st.markdown(f'<div class="big-question">{q.prompt}</div>', unsafe_allow_html=True)
 
-    elapsed_shown = time.time() - st.session_state.question_shown_at
-    if st.session_state.fade_enabled:
-        remaining = st.session_state.fade_seconds - elapsed_shown
-        if remaining > 0:
-            fading_scaffold(q.scaffold_html, remaining, key=f"q{idx}")
+    if st.session_state.scaffold_enabled:
+        elapsed_shown = time.time() - st.session_state.question_shown_at
+        if st.session_state.fade_enabled:
+            remaining = st.session_state.fade_seconds - elapsed_shown
+            if remaining > 0:
+                fading_scaffold(q.scaffold_html, remaining, key=f"q{idx}")
+            else:
+                st.caption("💭 Scaffold hidden — try it from memory now.")
         else:
-            st.caption("💭 Scaffold hidden — try it from memory now.")
-    else:
-        st.markdown(q.scaffold_html, unsafe_allow_html=True)
+            st.markdown(q.scaffold_html, unsafe_allow_html=True)
 
     if not st.session_state.awaiting_feedback:
         with st.form(key=f"answer_form_{idx}", clear_on_submit=False, enter_to_submit=True):
