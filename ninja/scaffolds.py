@@ -892,25 +892,6 @@ def fraction_simplify_single_arrow(big_num: int, big_den: int) -> str:
     return _wrap(_fraction_simplify_single_arrow_inner(big_num, big_den))
 
 
-def fraction_simplify_scaffold(real_num: int, real_den: int, kind: str) -> str:
-    """'Simplify fractions' scaffold: the question's own (unsimplified)
-    fraction shown as a real bar, paired with a worked example of the
-    method — rotates between four generic demo styles (fraction wall,
-    circle pair, multi-step scale arrows, single ÷HCF arrow) — kept
-    visually separate so the picture always relates to the actual
-    question and never gives away the simplified answer."""
-    demo_num, demo_den, demo_scale = 3, 5, 3
-    if kind == "wall":
-        demo = _fraction_wall_two_rows_inner(demo_num * demo_scale, demo_den * demo_scale, demo_num, demo_den)
-    elif kind == "circles":
-        demo = _fraction_circles_pair_inner(demo_num * demo_scale, demo_den * demo_scale, demo_num, demo_den)
-    elif kind == "arrows":
-        demo = _fraction_scale_arrows_inner(demo_num, demo_den, demo_scale, direction="down")
-    else:
-        demo = _fraction_simplify_single_arrow_inner(24, 16)
-    return fraction_matches_question(real_num, real_den, demo)
-
-
 def fraction_equivalent_scaffold(real_num: int, real_den: int, kind: str) -> str:
     """'Equivalent fractions' scaffold: the question's own known fraction
     shown as a real bar, paired with a worked example of the method —
