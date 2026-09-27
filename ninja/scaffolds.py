@@ -1462,3 +1462,84 @@ def hint_list(steps: list[str], note: str | None = None) -> str:
 def fact_list(lines: list[str], note: str | None = None) -> str:
     items = "".join(f"<div style='margin-bottom:4px;font-size:1.05rem;'>{s}</div>" for s in lines)
     return _wrap(items, note)
+
+
+# --------------------------------------------------------- multiply/divide signs
+def _sign_circle(sign: str) -> str:
+    color = "#1b3a5c" if sign == "+" else "#e0457b"
+    return (
+        '<span style="display:inline-flex;align-items:center;justify-content:center;'
+        f'width:26px;height:26px;border-radius:50%;background:{color};color:#fff;'
+        f'font-weight:bold;font-size:15px;flex:none;">{sign}</span>'
+    )
+
+
+def _sign_eq_row(s1: str, op: str, s2: str, s3: str) -> str:
+    return (
+        '<div style="display:flex;align-items:center;gap:5px;">'
+        f'{_sign_circle(s1)}<span style="font-weight:bold;">{op}</span>{_sign_circle(s2)}'
+        f'<span style="font-weight:bold;">=</span>{_sign_circle(s3)}</div>'
+    )
+
+
+def sign_rules_table() -> str:
+    navy, pink = "#1b3a5c", "#e0457b"
+
+    def block(border: str, label: str, rows: list[tuple[str, str]]) -> str:
+        row_html = "".join(f'<div style="display:flex;gap:16px;">{m}{d}</div>' for m, d in rows)
+        return (
+            f'<div style="border:3px solid {border};border-radius:10px;padding:6px 12px;">'
+            f'<div style="text-align:center;font-weight:bold;color:{border};font-size:11px;'
+            f'margin-bottom:5px;">{label}</div>{row_html}</div>'
+        )
+
+    same_rows = [
+        (_sign_eq_row("+", "×", "+", "+"), _sign_eq_row("+", "÷", "+", "+")),
+        (_sign_eq_row("−", "×", "−", "+"), _sign_eq_row("−", "÷", "−", "+")),
+    ]
+    diff_rows = [
+        (_sign_eq_row("−", "×", "+", "−"), _sign_eq_row("−", "÷", "+", "−")),
+        (_sign_eq_row("+", "×", "−", "−"), _sign_eq_row("+", "÷", "−", "−")),
+    ]
+
+    header = (
+        '<div style="display:flex;gap:20px;justify-content:center;font-weight:bold;'
+        'font-size:11px;color:#555;margin-bottom:4px;">'
+        '<span>MULTIPLY</span><span>DIVIDE</span></div>'
+    )
+
+    return (
+        '<div style="display:flex;flex-direction:column;gap:7px;align-items:center;">'
+        + header
+        + block(navy, "SAME SIGNS = POSITIVE", same_rows)
+        + block(pink, "DIFFERENT SIGNS = NEGATIVE", diff_rows)
+        + "</div>"
+    )
+
+
+def negative_sign_scaffold(op: str, sign_x: int, sign_y: int, x_val: int, y_val: int) -> str:
+    """Rule table (same/different signs) plus a worked example matching the
+    question's operation and sign pattern, using fixed demo magnitudes so the
+    actual question's answer is never shown."""
+    x, y = x_val * sign_x, y_val * sign_y
+    ans = x * y if op == "×" else x_val // y_val * (sign_x * sign_y)
+    magnitude_ans = x_val * y_val if op == "×" else x_val // y_val
+    x_str = f"({x})" if x < 0 else str(x)
+    y_str = f"({y})" if y < 0 else str(y)
+    ans_str = f"({ans})" if ans < 0 else str(ans)
+
+    example = (
+        '<div style="display:flex;flex-direction:column;gap:6px;align-items:center;">'
+        f'<div style="font-size:19px;font-weight:bold;">{x_str} {op} {y_str} = {ans_str}</div>'
+        f'<div style="font-size:13px;color:#555;">{x_val} {op} {y_val} = {magnitude_ans}</div>'
+        "</div>"
+    )
+
+    inner = (
+        '<div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">'
+        + sign_rules_table()
+        + '<div style="margin-left:6px;padding-left:20px;border-left:2px dashed #ccc;">'
+        + example
+        + "</div></div>"
+    )
+    return _wrap(inner)

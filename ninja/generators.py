@@ -283,8 +283,8 @@ def ks_multiply_negative_numbers() -> Question:
     signs = random.choice([(1, -1), (-1, 1), (-1, -1)])
     x, y = a * signs[0], b * signs[1]
     ans = x * y
-    rule = "Same signs → positive answer." if signs[0] == signs[1] else "Different signs → negative answer."
-    scaffold = sc.hint_list([rule, f"Multiply the sizes: {a} × {b} = {a*b}"])
+    demo_a, demo_b = (4, 5) if (a, b) != (4, 5) else (6, 7)
+    scaffold = sc.negative_sign_scaffold("×", signs[0], signs[1], demo_a, demo_b)
     return Question(f"{x} × ({y})" if y < 0 else f"{x} × {y}", str(ans), numeric_check(ans), scaffold)
 
 
@@ -295,8 +295,8 @@ def ks_divide_negative_numbers() -> Question:
     a = (b * q) * signs[0]
     d = b * signs[1]
     ans = a / d
-    rule = "Same signs → positive answer." if signs[0] == signs[1] else "Different signs → negative answer."
-    scaffold = sc.hint_list([rule, f"Divide the sizes: {abs(a)} ÷ {abs(d)} = {q}"])
+    demo_b, demo_q = (4, 3) if (b, q) != (4, 3) else (6, 5)
+    scaffold = sc.negative_sign_scaffold("÷", signs[0], signs[1], demo_b * demo_q, demo_b)
     a_str = f"({a})" if a < 0 else f"{a}"
     d_str = f"({d})" if d < 0 else f"{d}"
     return Question(f"{a_str} ÷ {d_str}", str(int(ans)), numeric_check(ans), scaffold)
