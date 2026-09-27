@@ -831,13 +831,15 @@ def fraction_circles_pair(num1: int, den1: int, num2: int, den2: int) -> str:
     return _wrap(_fraction_circles_pair_inner(num1, den1, num2, den2))
 
 
-def _fraction_scale_arrows_inner(num: int, den: int, scale: int, direction: str = "up") -> str:
+def _fraction_scale_arrows_inner(num: int, den: int, scale: int, direction: str = "up", blank_right: bool = False) -> str:
     """`num/den` and its scaled equivalent side by side, with a curved
     arrow above joining the two numerators and one below joining the two
     denominators, each labelled with the scale factor. `direction="up"`
     scales `num/den` up (×scale, left→right); `direction="down"` starts
     from the larger, unsimplified fraction and simplifies down (÷scale,
-    left→right)."""
+    left→right). `blank_right=True` shows the arrows and the ÷/× factor
+    but leaves the resulting fraction as empty boxes (☐) for the pupil
+    to work out, rather than giving it away."""
     if direction == "up":
         left_n, left_d = num, den
         right_n, right_d = num * scale, den * scale
@@ -846,13 +848,15 @@ def _fraction_scale_arrows_inner(num: int, den: int, scale: int, direction: str 
         left_n, left_d = num * scale, den * scale
         right_n, right_d = num, den
         op = "÷"
+    if blank_right:
+        right_n, right_d = "☐", "☐"
     width, height = 260, 170
     x1, x2 = 60, 200
     y_num, y_line, y_den = 60, 70, 105
     top_arc_y, bot_arc_y = 20, 148
     mid_x = (x1 + x2) / 2
 
-    def frac_block(x: float, n: int, d: int) -> str:
+    def frac_block(x: float, n, d) -> str:
         return (
             f'<text x="{x}" y="{y_num}" text-anchor="middle" font-size="26" font-weight="bold" fill="#222">{n}</text>'
             f'<line x1="{x - 16}" y1="{y_line}" x2="{x + 16}" y2="{y_line}" stroke="#222" stroke-width="2.5"/>'
@@ -882,7 +886,7 @@ def fraction_scale_arrows(num: int, den: int, scale: int, direction: str = "up")
 
 def _fraction_simplify_single_arrow_inner(big_num: int, big_den: int) -> str:
     hcf = math.gcd(big_num, big_den)
-    return _fraction_scale_arrows_inner(big_num // hcf, big_den // hcf, hcf, direction="down")
+    return _fraction_scale_arrows_inner(big_num // hcf, big_den // hcf, hcf, direction="down", blank_right=True)
 
 
 def fraction_simplify_single_arrow(big_num: int, big_den: int) -> str:
