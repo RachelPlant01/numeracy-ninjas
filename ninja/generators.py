@@ -633,6 +633,18 @@ def ms_add_9() -> Question:
     return Question(order, str(ans), numeric_check(ans), scaffold)
 
 
+def ms_add_within_20_bridge_10() -> Question:
+    while True:
+        a = random.randint(2, 9)
+        b = random.randint(2, 9)
+        if a + b > 10:
+            break
+    ans = a + b
+    scaffold = sc.bridge_ten_frames(a, b)
+    order = random.choice([f"{a} + {b}", f"{b} + {a}"])
+    return Question(order, str(ans), numeric_check(ans), scaffold)
+
+
 def ms_add_multiples_of_10() -> Question:
     n = random.randint(1, 150)
     m = random.choice([10, 20, 30, 40, 50, 60, 70, 80, 90])
@@ -889,6 +901,7 @@ MENTAL_STRATEGIES: dict[str, tuple[str, callable]] = {
     "MS9": ("Adding 10 to a number", ms_add_10),
     "MS10": ("Subtracting 10 from a number", ms_subtract_10),
     "MS28": ("Adding 9 to a number", ms_add_9),
+    "MS29": ("Adding within 20, bridging 10", ms_add_within_20_bridge_10),
     "MS11": ("Adding multiples of 10 to a number", ms_add_multiples_of_10),
     "MS12": ("Subtracting multiples of 10 from a number", ms_subtract_multiples_of_10),
     "MS13": ("How many to a multiple of 10?", ms_how_many_to_multiple_of_10),

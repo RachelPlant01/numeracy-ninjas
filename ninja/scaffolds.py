@@ -172,6 +172,37 @@ def ten_frame_pair(known: int, total: int, note: str | None = None) -> str:
     return _wrap(inner, note)
 
 
+def _ten_frame_from_colors(colors: list[str]) -> str:
+    cells = []
+    for i in range(10):
+        dot = f'<circle cx="19" cy="19" r="13" fill="{colors[i]}"/>' if i < len(colors) else ""
+        cells.append(
+            f'<div style="width:38px;height:38px;border:1px solid #333;'
+            f'display:flex;align-items:center;justify-content:center;">'
+            f'<svg width="38" height="38">{dot}</svg></div>'
+        )
+    return (
+        f'<div style="display:inline-grid;grid-template-columns:repeat(5,38px);'
+        f'grid-template-rows:repeat(2,38px);width:190px;">{"".join(cells)}</div>'
+    )
+
+
+def bridge_ten_frames(a: int, b: int) -> str:
+    """The first addend's dots fill the first ten-frame; the second
+    addend's dots — a different colour, so the two amounts are clearly
+    separate sets — fill the rest of that frame and then spill into
+    the second, showing how they combine to make a ten with a leftover."""
+    color_a, color_b = "#e74c3c", "#2e6da4"
+    gap = max(0, 10 - a)
+    b_in_frame1 = min(b, gap)
+    b_in_frame2 = b - b_in_frame1
+
+    frame1 = _ten_frame_from_colors([color_a] * a + [color_b] * b_in_frame1)
+    frame2 = _ten_frame_from_colors([color_b] * b_in_frame2)
+    inner = f'<div style="display:flex;gap:20px;flex-wrap:wrap;">{frame1}{frame2}</div>'
+    return _wrap(inner)
+
+
 def ten_frames_multi(known: int, total: int) -> str:
     """As many ten-frames as needed to hold `total`, filled solid up to
     `known` and then dashed (countable) the rest of the way — a multi-frame
