@@ -1005,15 +1005,17 @@ def fraction_simplify_single_arrow(big_num: int, big_den: int) -> str:
 
 
 def fraction_equivalent_scaffold(real_num: int, real_den: int, kind: str) -> str:
-    """'Equivalent fractions' scaffold: the question's own known fraction
-    shown as a real bar, paired with a worked example of the method —
-    rotates between three generic demo styles (fraction wall, circle
-    pair, scale arrows) — kept visually separate so the picture always
-    relates to the actual question and never gives away the missing
-    value."""
+    """'Equivalent fractions' scaffold, rotating between three generic
+    demo styles. The wall is already a two-row "before/after" picture on
+    its own, so it's shown alone; circles and arrows aren't a natural
+    pair by themselves, so those are paired with the question's own
+    known fraction as a real bar (kept visually separate) so the
+    picture still relates to the actual question. None of the styles
+    ever give away the missing value."""
     demo_num, demo_den, demo_scale = 3, 5, 3
     if kind == "wall":
         demo = _fraction_wall_two_rows_inner(demo_num, demo_den, demo_num * demo_scale, demo_den * demo_scale)
+        return _wrap(demo)
     elif kind == "circles":
         demo = _fraction_circles_pair_inner(demo_num, demo_den, demo_num * demo_scale, demo_den * demo_scale)
     else:
