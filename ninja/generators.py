@@ -312,19 +312,12 @@ def ks_simplify_fractions() -> Question:
     n2, d2 = num * g, den * g
     simplest = Fraction(n2, d2)
 
-    # A fixed, generic demo illustrates the method — kept separate from
-    # the question's own numbers so the picture never gives away the
-    # actual simplified answer.
-    demo_num, demo_den, demo_scale = 3, 5, 3
+    # The question's own (unsimplified) fraction is shown as a real bar,
+    # paired with a worked example of the method using different numbers
+    # — so the picture always relates to the actual question without ever
+    # giving away the simplified answer.
     kind = random.choice(["wall", "circles", "arrows", "hcf_arrow"])
-    if kind == "wall":
-        scaffold = sc.fraction_wall_two_rows(demo_num * demo_scale, demo_den * demo_scale, demo_num, demo_den)
-    elif kind == "circles":
-        scaffold = sc.fraction_circles_pair(demo_num * demo_scale, demo_den * demo_scale, demo_num, demo_den)
-    elif kind == "arrows":
-        scaffold = sc.fraction_scale_arrows(demo_num, demo_den, demo_scale, direction="down")
-    else:
-        scaffold = sc.fraction_simplify_single_arrow(24, 16)
+    scaffold = sc.fraction_simplify_scaffold(n2, d2, kind)
 
     prompt = f"Write {sc.fraction_html(n2, d2)} in its simplest form"
     return Question(prompt, f"{simplest.numerator}/{simplest.denominator}", fraction_check(simplest), scaffold)
@@ -455,17 +448,12 @@ def ks_equivalent_fractions() -> Question:
     scale = random.randint(2, 6)
     missing_side = random.choice(["den", "num"])
 
-    # A fixed, generic demo (3/5 = 9/15) illustrates the method — kept
-    # separate from the question's own numbers so the picture never
-    # gives away the actual missing value.
-    demo_num, demo_den, demo_scale = 3, 5, 3
+    # The question's own known fraction (num/den) is shown as a real bar,
+    # paired with a worked example of the method using different numbers
+    # — so the picture always relates to the actual question without ever
+    # giving away the missing value.
     kind = random.choice(["wall", "circles", "arrows"])
-    if kind == "wall":
-        scaffold = sc.fraction_wall_two_rows(demo_num, demo_den, demo_num * demo_scale, demo_den * demo_scale)
-    elif kind == "circles":
-        scaffold = sc.fraction_circles_pair(demo_num, demo_den, demo_num * demo_scale, demo_den * demo_scale)
-    else:
-        scaffold = sc.fraction_scale_arrows(demo_num, demo_den, demo_scale)
+    scaffold = sc.fraction_equivalent_scaffold(num, den, kind)
 
     if missing_side == "den":
         prompt = sc.fraction_equation_html(num, den, num * scale, "☐")

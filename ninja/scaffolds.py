@@ -737,24 +737,62 @@ def fraction_equation_html(left_num, left_den, right_num, right_den) -> str:
     )
 
 
+def _fraction_row_cells(n: int, d: int, total_w: int = 320, row_h: int = 40, color: str = "#a3c9f9") -> str:
+    seg_w = total_w / d
+    cells = [
+        f'<div style="width:{seg_w}px;height:{row_h}px;background:{color if i < n else "#fff"};'
+        f'border:1px solid #333;box-sizing:border-box;"></div>'
+        for i in range(d)
+    ]
+    return f'<div style="display:flex;width:{total_w}px;">{"".join(cells)}</div>'
+
+
+def _fraction_wall_two_rows_inner(num1: int, den1: int, num2: int, den2: int) -> str:
+    return (
+        '<div style="display:flex;flex-direction:column;gap:6px;">'
+        f'{_fraction_row_cells(num1, den1)}{_fraction_row_cells(num2, den2)}</div>'
+    )
+
+
 def fraction_wall_two_rows(num1: int, den1: int, num2: int, den2: int) -> str:
     """A two-row fraction wall: both rows are the same total length, the
     top row split into `den1` equal parts with `num1` shaded, the
     bottom row split into `den2` equal parts with `num2` shaded — so
     the matching shaded length shows the two fractions are equal."""
-    total_w = 320
-    row_h = 40
+    return _wrap(_fraction_wall_two_rows_inner(num1, den1, num2, den2))
 
-    def row(n: int, d: int) -> str:
-        seg_w = total_w / d
-        cells = [
-            f'<div style="width:{seg_w}px;height:{row_h}px;background:{"#a3c9f9" if i < n else "#fff"};'
-            f'border:1px solid #333;box-sizing:border-box;"></div>'
-            for i in range(d)
-        ]
-        return f'<div style="display:flex;width:{total_w}px;">{"".join(cells)}</div>'
 
-    inner = f'<div style="display:flex;flex-direction:column;gap:6px;">{row(num1, den1)}{row(num2, den2)}</div>'
+def fraction_bar_single(num: int, den: int) -> str:
+    """A single bar for the actual `num/den` in question — divided into
+    visible unit cells when there are few enough to stay readable,
+    otherwise a plain proportional fill (no per-cell borders). Only ever
+    shows the fraction as given, never a simplified/scaled result, so it
+    never leaks an answer."""
+    if den <= 24:
+        return _fraction_row_cells(num, den)
+    total_w, row_h = 320, 40
+    fill_w = round(total_w * num / den, 1)
+    return (
+        f'<div style="position:relative;width:{total_w}px;height:{row_h}px;'
+        'border:2px solid #333;border-radius:4px;overflow:hidden;background:#fff;'
+        'box-sizing:border-box;">'
+        f'<div style="position:absolute;left:0;top:0;bottom:0;width:{fill_w}px;background:#a3c9f9;"></div>'
+        "</div>"
+    )
+
+
+def fraction_matches_question(real_num: int, real_den: int, demo_inner_html: str) -> str:
+    """The question's own fraction shown as a real, correctly-sized bar,
+    plus a worked example of the method (different numbers) kept visually
+    separate via a dashed divider — so the picture always relates to the
+    actual question, and the generic demo is clearly a separate example
+    rather than a confusing mismatch."""
+    inner = (
+        '<div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">'
+        f'<div>{fraction_bar_single(real_num, real_den)}</div>'
+        '<div style="margin-left:6px;padding-left:20px;border-left:2px dashed #ccc;">'
+        f"{demo_inner_html}</div></div>"
+    )
     return _wrap(inner)
 
 
@@ -775,22 +813,25 @@ def _pie_svg(num: int, den: int, r: int = 50) -> str:
     return "".join(parts)
 
 
-def fraction_circles_pair(num1: int, den1: int, num2: int, den2: int) -> str:
-    """Two shaded circles side by side (the first split into `den1`
-    slices with `num1` shaded, the second into `den2` slices with
-    `num2` shaded) joined by an "=" — the same shaded amount shown
-    two different ways."""
-    inner = (
+def _fraction_circles_pair_inner(num1: int, den1: int, num2: int, den2: int) -> str:
+    return (
         f'<div style="display:flex;align-items:center;gap:20px;">'
         f'{_pie_svg(num1, den1)}'
         f'<div style="font-size:1.8rem;font-weight:800;">=</div>'
         f'{_pie_svg(num2, den2)}'
         f'</div>'
     )
-    return _wrap(inner)
 
 
-def fraction_scale_arrows(num: int, den: int, scale: int, direction: str = "up") -> str:
+def fraction_circles_pair(num1: int, den1: int, num2: int, den2: int) -> str:
+    """Two shaded circles side by side (the first split into `den1`
+    slices with `num1` shaded, the second into `den2` slices with
+    `num2` shaded) joined by an "=" — the same shaded amount shown
+    two different ways."""
+    return _wrap(_fraction_circles_pair_inner(num1, den1, num2, den2))
+
+
+def _fraction_scale_arrows_inner(num: int, den: int, scale: int, direction: str = "up") -> str:
     """`num/den` and its scaled equivalent side by side, with a curved
     arrow above joining the two numerators and one below joining the two
     denominators, each labelled with the scale factor. `direction="up"`
@@ -832,15 +873,59 @@ def fraction_scale_arrows(num: int, den: int, scale: int, direction: str = "up")
         f'<text x="{mid_x}" y="{bot_arc_y + 18}" text-anchor="middle" font-size="14" fill="#c0392b" font-weight="bold">{op}{scale}</text>',
         "</svg>",
     ]
-    return _wrap("".join(svg))
+    return "".join(svg)
+
+
+def fraction_scale_arrows(num: int, den: int, scale: int, direction: str = "up") -> str:
+    return _wrap(_fraction_scale_arrows_inner(num, den, scale, direction))
+
+
+def _fraction_simplify_single_arrow_inner(big_num: int, big_den: int) -> str:
+    hcf = math.gcd(big_num, big_den)
+    return _fraction_scale_arrows_inner(big_num // hcf, big_den // hcf, hcf, direction="down")
 
 
 def fraction_simplify_single_arrow(big_num: int, big_den: int) -> str:
     """An unsimplified fraction going straight to its simplest form in one
     step — a single ÷HCF arrow pair, rather than a multi-step chain of
     smaller common factors."""
-    hcf = math.gcd(big_num, big_den)
-    return fraction_scale_arrows(big_num // hcf, big_den // hcf, hcf, direction="down")
+    return _wrap(_fraction_simplify_single_arrow_inner(big_num, big_den))
+
+
+def fraction_simplify_scaffold(real_num: int, real_den: int, kind: str) -> str:
+    """'Simplify fractions' scaffold: the question's own (unsimplified)
+    fraction shown as a real bar, paired with a worked example of the
+    method — rotates between four generic demo styles (fraction wall,
+    circle pair, multi-step scale arrows, single ÷HCF arrow) — kept
+    visually separate so the picture always relates to the actual
+    question and never gives away the simplified answer."""
+    demo_num, demo_den, demo_scale = 3, 5, 3
+    if kind == "wall":
+        demo = _fraction_wall_two_rows_inner(demo_num * demo_scale, demo_den * demo_scale, demo_num, demo_den)
+    elif kind == "circles":
+        demo = _fraction_circles_pair_inner(demo_num * demo_scale, demo_den * demo_scale, demo_num, demo_den)
+    elif kind == "arrows":
+        demo = _fraction_scale_arrows_inner(demo_num, demo_den, demo_scale, direction="down")
+    else:
+        demo = _fraction_simplify_single_arrow_inner(24, 16)
+    return fraction_matches_question(real_num, real_den, demo)
+
+
+def fraction_equivalent_scaffold(real_num: int, real_den: int, kind: str) -> str:
+    """'Equivalent fractions' scaffold: the question's own known fraction
+    shown as a real bar, paired with a worked example of the method —
+    rotates between three generic demo styles (fraction wall, circle
+    pair, scale arrows) — kept visually separate so the picture always
+    relates to the actual question and never gives away the missing
+    value."""
+    demo_num, demo_den, demo_scale = 3, 5, 3
+    if kind == "wall":
+        demo = _fraction_wall_two_rows_inner(demo_num, demo_den, demo_num * demo_scale, demo_den * demo_scale)
+    elif kind == "circles":
+        demo = _fraction_circles_pair_inner(demo_num, demo_den, demo_num * demo_scale, demo_den * demo_scale)
+    else:
+        demo = _fraction_scale_arrows_inner(demo_num, demo_den, demo_scale, direction="up")
+    return fraction_matches_question(real_num, real_den, demo)
 
 
 # ------------------------------------------------------------ near doubles
