@@ -455,9 +455,10 @@ def ks_fraction_of_amount() -> Question:
     unit = random.randint(2, 20)
     total = unit * den
     ans = unit * num
-    bar = sc.bar_model(str(total), [("", 1)] * den, single_color="#a3c9f9")
-    array = sc.fraction_array(total, den, num)
-    scaffold = f'<div style="display:flex;flex-direction:column;gap:14px;">{bar}{array}</div>'
+    if random.choice(["bar", "array"]) == "bar":
+        scaffold = sc.bar_model(str(total), [("", 1)] * den, single_color="#a3c9f9")
+    else:
+        scaffold = sc.fraction_array(total, den, num)
     return Question(f"What is {num}/{den} of {total}?", str(ans), numeric_check(ans), scaffold)
 
 
