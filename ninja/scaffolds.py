@@ -685,6 +685,77 @@ def bar_model(whole_label: str, parts: list[tuple[str, float]], note: str | None
     return _wrap(f'<div style="display:flex;flex-direction:column;gap:4px;">{top}{bottom}</div>', note)
 
 
+def _fmt_seg(v: float) -> str:
+    return str(int(v)) if v == int(v) else f"{v:g}"
+
+
+def percentage_bar_model(amount, pct) -> str:
+    """A "pct% of amount" bar: a purple badge naming the calculation, a
+    double-headed arrow labelled with the whole amount, a "100%" track,
+    then a row of equal segments with the target percentage shaded.
+    Percentages that are a clean multiple of 25 (25%, 50%, 75%) split
+    the bar into quarters, since that's the natural way to picture them;
+    everything else uses the "find 10% first" method — 10 segments each
+    worth 10% — with whole 10%-chunks shaded solid orange, and (for a
+    percentage like 5% or 15% that isn't itself a multiple of 10) the
+    next segment along shaded a lighter orange and labelled with its own
+    smaller value for the leftover half-a-ten-percent."""
+    orange, orange_light = "#e67e22", "#f3c99a"
+    if int(pct) % 25 == 0:
+        n_segments = 4
+    else:
+        n_segments = 10
+    whole = int(pct) // (100 // n_segments)
+    remainder = int(pct) % (100 // n_segments)
+    seg_val = amount / n_segments
+
+    badge = (
+        '<div style="background:#5b2c8f;color:#fff;font-weight:bold;'
+        'padding:4px 16px;border-radius:14px;font-size:0.95rem;">'
+        f'{pct}% of {amount}</div>'
+    )
+
+    bar_w = 340
+
+    arrow_svg = (
+        f'<svg width="{bar_w}" height="34" viewBox="0 0 {bar_w} 34">'
+        '<defs><marker id="pbarrow" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" '
+        'orient="auto"><path d="M0,0 L7,3.5 L0,7 z" fill="#222"/></marker></defs>'
+        f'<text x="{bar_w/2}" y="14" text-anchor="middle" font-size="16" font-weight="bold" fill="#222">{amount}</text>'
+        f'<line x1="4" y1="26" x2="{bar_w-4}" y2="26" stroke="#222" stroke-width="1.5" '
+        'marker-start="url(#pbarrow)" marker-end="url(#pbarrow)"/>'
+        "</svg>"
+    )
+
+    track = (
+        f'<div style="width:{bar_w}px;height:20px;background:#eee;border:1px solid #999;'
+        'display:flex;align-items:center;justify-content:center;color:#888;font-size:0.8rem;'
+        'box-sizing:border-box;">100%</div>'
+    )
+
+    seg_w = bar_w / n_segments
+    cells = []
+    for i in range(n_segments):
+        if i < whole:
+            bg, color, label = orange, "#fff", _fmt_seg(seg_val)
+        elif i == whole and remainder:
+            bg, color, label = orange_light, "#7a4a10", _fmt_seg(seg_val * remainder / (100 // n_segments))
+        else:
+            bg, color, label = "#fff", "#999", _fmt_seg(seg_val)
+        cells.append(
+            f'<div style="width:{seg_w}px;height:42px;background:{bg};color:{color};'
+            'border:1px solid #333;box-sizing:border-box;display:flex;align-items:center;'
+            f'justify-content:center;font-weight:bold;font-size:0.85rem;">{label}</div>'
+        )
+    row = f'<div style="display:flex;width:{bar_w}px;">{"".join(cells)}</div>'
+
+    inner = (
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;">'
+        + badge + arrow_svg + track + row + "</div>"
+    )
+    return _wrap(inner)
+
+
 def fraction_array(total: int, den: int, num: int) -> str:
     """`den` equal columns of dots (each holding `total / den` items),
     all the same colour, with a pill-shaped outline drawn around the

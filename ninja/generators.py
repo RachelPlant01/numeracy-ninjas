@@ -589,7 +589,7 @@ def ks_percentage_of_amount(lang: str = "en") -> Question:
     amount = random.choice([20, 40, 50, 60, 80, 100, 120, 150, 200, 240, 300])
     pct = random.choice([5, 10, 15, 20, 25, 30, 40, 50, 75, 10])
     ans = round(amount * pct / 100, 2)
-    scaffold = sc.bar_model(f"£{amount}", [(f"{pct}%", pct), ("", 100 - pct)], single_color="#a3c9f9")
+    scaffold = sc.percentage_bar_model(amount, pct)
     prompt = _t(f"What is {pct}% of £{amount}?", f"Dè a th' ann an {pct}% de £{amount}?", lang)
     return Question(prompt, f"£{_fmt(ans)}", numeric_check(ans, 0.5), scaffold)
 
