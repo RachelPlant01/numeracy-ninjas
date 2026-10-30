@@ -10,7 +10,9 @@ import time
 import streamlit as st
 import streamlit.components.v1 as components
 
+from ninja import scaffolds as sc
 from ninja.generators import KEY_SKILLS, MENTAL_STRATEGIES
+from teacher_tools import render_teacher_tools
 
 CATEGORIES = {
     "key_skills": {
@@ -45,6 +47,8 @@ UI = {
         "fade_scaffold": "Fade the scaffold after a while",
         "fade_scaffold_help": "The visual scaffold will automatically hide itself after the chosen time, so pupils move towards working independently.",
         "fade_seconds_label": "Fade scaffold after (seconds)",
+        "bw_scaffold": "Black and white scaffold",
+        "bw_scaffold_help": "Shows the scaffold in shades of grey instead of colour — handy for black-and-white printing or pupils who prefer it.",
         "fade_stay_visible": "Scaffold will stay visible for every question.",
         "start": "Start ▶",
         "home": "🏠 Home",
@@ -86,6 +90,8 @@ UI = {
         "home": "🏠 Dhachaigh",
         "question_of": "Ceist {i} de {n}",
         "scaffold_hidden": "💭 An dealbh taice falaichte — feuch bhon chuimhne a-nis.",
+        "bw_scaffold": "Dealbh taice ann an dubh is geal",
+        "bw_scaffold_help": "Seallaidh seo an dealbh taice ann an dathan liath an àite dhathan — feumail airson clò-bhualadh dubh is geal no do sgoilearan as fheàrr leotha e.",
         "scaffold_hidden_inline": "An dealbh taice falaichte — feuch bhon chuimhne a-nis.",
         "answer_placeholder": "Sgrìobh do fhreagairt, an uairsin brùth Enter…",
         "submit": "Cuir a-steach ▶",
@@ -186,6 +192,7 @@ def init_state():
         category=None,
         skill_id=None,
         scaffold_enabled=True,
+        scaffold_bw=False,
         fade_enabled=True,
         fade_seconds=15,
         quiz_questions=[],
@@ -330,6 +337,10 @@ def render_landing():
             st.session_state.category = "mental_strategies"
             go("skill_select")
             st.rerun()
+    st.divider()
+    if st.button("🧑‍🏫 Teacher tools — worksheets and trackers", use_container_width=True):
+        go("teacher")
+        st.rerun()
 
 
 def render_skill_select():
@@ -369,6 +380,10 @@ def render_settings():
         help=tr("show_scaffold_help"),
     )
     if st.session_state.scaffold_enabled:
+        st.session_state.scaffold_bw = st.checkbox(
+            tr("bw_scaffold"), value=st.session_state.scaffold_bw,
+            help=tr("bw_scaffold_help"),
+        )
         st.session_state.fade_enabled = st.checkbox(
             tr("fade_scaffold"), value=st.session_state.fade_enabled,
             help=tr("fade_scaffold_help"),
@@ -424,15 +439,18 @@ def render_quiz():
     st.markdown(f'<div class="big-question">{q.prompt}</div>', unsafe_allow_html=True)
 
     if st.session_state.scaffold_enabled:
+        scaffold_html = q.scaffold_html
+        if st.session_state.scaffold_bw:
+            scaffold_html = sc.to_black_and_white(scaffold_html)
         elapsed_shown = time.time() - st.session_state.question_shown_at
         if st.session_state.fade_enabled:
             remaining = st.session_state.fade_seconds - elapsed_shown
             if remaining > 0:
-                fading_scaffold(q.scaffold_html, remaining, key=f"q{idx}")
+                fading_scaffold(scaffold_html, remaining, key=f"q{idx}")
             else:
                 st.caption(tr("scaffold_hidden"))
         else:
-            st.markdown(q.scaffold_html, unsafe_allow_html=True)
+            st.markdown(scaffold_html, unsafe_allow_html=True)
 
     if not st.session_state.awaiting_feedback:
         with st.form(key=f"answer_form_{idx}", clear_on_submit=False, enter_to_submit=True):
@@ -500,5 +518,6 @@ STAGE_RENDERERS = {
     "settings": render_settings,
     "quiz": render_quiz,
     "results": render_results,
+    "teacher": lambda: render_teacher_tools(banner, go),
 }
 STAGE_RENDERERS[st.session_state.stage]()

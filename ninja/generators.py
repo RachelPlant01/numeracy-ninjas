@@ -177,8 +177,9 @@ def ks_order_of_operations_easy(lang: str = "en") -> Question:
         q = _rand_op_val(2, 9)
         a = b * q
         c = _rand_op_val(1, 9)
-        expr = f"{a} ÷ {b} - {c}"
+        expr = f"{a} ÷ {b} − {c}"
         ans = a / b - c
+        lines = [("", expr), ("=", f"[] − {c}")]
         steps = [
             _t(f"Divide first: {a} ÷ {b} = {a // b}", f"Roinn an toiseach: {a} ÷ {b} = {a // b}", lang),
             _t(f"Then subtract: {a // b} - {c}", f"An uairsin thoir air falbh: {a // b} - {c}", lang),
@@ -189,6 +190,7 @@ def ks_order_of_operations_easy(lang: str = "en") -> Question:
         c = _rand_op_val(1, 20)
         expr = f"{a} × {b} + {c}"
         ans = a * b + c
+        lines = [("", expr), ("=", f"[] + {c}")]
         steps = [
             _t(f"Multiply first: {a} × {b} = {a*b}", f"Iomadaich an toiseach: {a} × {b} = {a*b}", lang),
             _t(f"Then add: {a*b} + {c}", f"An uairsin cuir ris: {a*b} + {c}", lang),
@@ -197,14 +199,14 @@ def ks_order_of_operations_easy(lang: str = "en") -> Question:
         a = _rand_op_val(10, 30)
         b = _rand_op_val(2, 9)
         c = _rand_op_val(2, 9)
-        expr = f"{a} - {b} × {c}"
+        expr = f"{a} − {b} × {c}"
         ans = a - b * c
+        lines = [("", expr), ("=", f"{a} − []")]
         steps = [
             _t(f"Multiply first: {b} × {c} = {b*c}", f"Iomadaich an toiseach: {b} × {c} = {b*c}", lang),
             _t(f"Then subtract: {a} - {b*c}", f"An uairsin thoir air falbh: {a} - {b*c}", lang),
         ]
-    scaffold = sc.hint_list([_t("Remember: multiply/divide before you add/subtract.",
-                                "Cuimhnich: iomadaich/roinn mus cuir thu ris no mus toir thu air falbh.", lang)] + steps)
+    scaffold = sc.working_lines(lines)  # SC-006
     return Question(expr, _fmt(ans), numeric_check(ans), scaffold)
 
 
@@ -215,9 +217,10 @@ def ks_order_of_operations_harder(lang: str = "en") -> Question:
     d = _rand_op_val(2, 9)
     template = random.choice(["bracket_sq", "sq_mul"])
     if template == "bracket_sq":
-        expr = f"({a} - {b})² + {c} × {d}"
+        expr = f"({a} − {b})² + {c} × {d}"
         inner = a - b
         ans = inner ** 2 + c * d
+        lines = [("", expr), ("=", f"[]² + {c} × {d}"), ("=", "[] + []")]
         steps = [
             _t("Brackets first.", "Camagan an toiseach.", lang),
             f"({a} - {b}) = {inner}",
@@ -226,16 +229,16 @@ def ks_order_of_operations_harder(lang: str = "en") -> Question:
             _t(f"Add: {inner**2} + {c*d}", f"Cuir ris: {inner**2} + {c*d}", lang),
         ]
     else:
-        expr = f"{a}² - {b} × {c}"
+        expr = f"{a}² − {b} × {c}"
         ans = a ** 2 - b * c
+        lines = [("", expr), ("=", "[] − []")]
         steps = [
             _t("Powers first.", "Cumhachdan an toiseach.", lang),
             f"{a}² = {a**2}",
             _t(f"Multiply: {b} × {c} = {b*c}", f"Iomadaich: {b} × {c} = {b*c}", lang),
             _t(f"Subtract: {a**2} - {b*c}", f"Thoir air falbh: {a**2} - {b*c}", lang),
         ]
-    scaffold = sc.hint_list([_t("Order: Brackets, then Powers, then × ÷, then + −.",
-                                "Òrdugh: Camagan, an uairsin Cumhachdan, an uairsin × ÷, an uairsin + −.", lang)] + steps)
+    scaffold = sc.working_lines(lines)  # SC-006
     return Question(expr, _fmt(ans), numeric_check(ans), scaffold)
 
 
@@ -243,12 +246,8 @@ def ks_multiply_decimal_numbers(lang: str = "en") -> Question:
     a = round(random.uniform(1.1, 9.9), 1)
     b = random.randint(2, 12)
     ans = round(a * b, 2)
-    scaffold = sc.hint_list([
-        _t(f"Ignore the decimal point: work out {round(a*10)} × {b}.",
-           f"Leig seachad am puing deicheach: obraich a-mach {round(a*10)} × {b}.", lang),
-        _t("Now put the decimal point back — count 1 digit in from the right.",
-           "A-nis cuir am puing deicheach air ais — cunnt 1 àireamh a-steach bhon taobh dheas.", lang),
-    ])
+    # SC-007: whole-number version, then "so" the real decimal one
+    scaffold = sc.working_lines([("", f"{round(a*10)} × {b} = []"), (_t("so", "mar sin", lang), f"{a} × {b} = []")])
     return Question(f"{a} × {b} =", _fmt(ans), numeric_check(ans), scaffold)
 
 
@@ -256,22 +255,18 @@ def ks_divide_decimal_numbers(lang: str = "en") -> Question:
     b = random.randint(2, 9)
     q = round(random.uniform(1.0, 20.0), 1)
     a = round(q * b, 2)
-    scaffold = sc.hint_list([
-        _t("Divide as if there were no decimal point, then place it in the answer directly above.",
-           "Roinn mar nach robh puing deicheach ann, agus cuir e san fhreagairt dìreach os a chionn.", lang),
-        f"{a} ÷ {b}",
-    ])
+    # SC-008: whole-number version, then "so" the real decimal one
+    a_str = _fmt(a)
+    dp = len(a_str.split(".")[1]) if "." in a_str else 0
+    whole = int(round(a * 10 ** dp))
+    scaffold = sc.working_lines([("", f"{whole} ÷ {b} = []"), (_t("so", "mar sin", lang), f"{a_str} ÷ {b} = []")])
     return Question(f"{a} ÷ {b} =", _fmt(round(a / b, 2)), numeric_check(a / b, 0.05), scaffold)
 
 
 def ks_place_value(lang: str = "en") -> Question:
     n = random.randint(100000, 9_876_543)
     words = gd_number_to_words(n) if lang == "gd" else number_to_words(n)
-    scaffold = sc.hint_list([
-        _t("Break the words into groups: millions, thousands, then hundreds/tens/units.",
-           "Roinn na faclan ann am buidhnean: milleanan, mìltean, an uairsin ceudan/deicheadan/aonadan.", lang),
-        _t("Write each group's digits in order.", "Sgrìobh àireamhan gach buidheann san òrdugh cheart.", lang),
-    ])
+    scaffold = sc.place_value_periods(str(n), blank=True)  # SC-009
     return Question(_t(f"Write “{words}” in digits", f"Sgrìobh “{words}” ann an àireamhan", lang), str(n), numeric_check(n), scaffold)
 
 
@@ -288,8 +283,10 @@ def ks_convert_fdp(lang: str = "en") -> Question:
     if template == "pct_to_frac":
         p = random.choice([10, 20, 25, 40, 50, 60, 75, 80, 90])
         frac = Fraction(p, 100)
-        scaffold = sc.hint_list([_t(f"Write {p}/100, then simplify by dividing top and bottom by the same number.",
-                                     f"Sgrìobh {p}/100, an uairsin sìmplich le bhith a' roinn a' bhàrr 's a' bhun leis an aon àireamh.", lang)])
+        if p % 10 == 0:
+            scaffold = sc.percent_fraction_number_line(p // 10, hide="fraction")  # SC-010
+        else:
+            scaffold = sc.percent_to_fraction_over_100_then_simplify(p)  # SC-011
         return Question(_t(f"{p}% as a fraction in its simplest form", f"{p}% mar bhloigh san riochd as sìmplidh", lang),
                          f"{frac.numerator}/{frac.denominator}", fraction_check(frac), scaffold)
     if template == "dec_to_pct":
@@ -305,8 +302,11 @@ def ks_convert_fdp(lang: str = "en") -> Question:
     while num >= den:
         num = random.randint(1, den - 1)
     ans = round(100 * num / den, 1)
-    scaffold = sc.hint_list([_t(f"Turn {num}/{den} into a fraction out of 100 first, or divide {num} by {den} and ×100.",
-                                 f"Dèan {num}/{den} na bhloigh a-mach à 100 an toiseach, no roinn {num} le {den} agus ×100.", lang)])
+    if (num * 10) % den == 0:  # lands on a tenth — use the aligned number lines (SC-010)
+        scaffold = sc.percent_fraction_number_line(num * 10 // den, hide="percentage")
+    else:
+        scaffold = sc.hint_list([_t(f"Turn {num}/{den} into a fraction out of 100 first, or divide {num} by {den} and ×100.",
+                                     f"Dèan {num}/{den} na bhloigh a-mach à 100 an toiseach, no roinn {num} le {den} agus ×100.", lang)])
     return Question(_t(f"{num}/{den} as a percentage", f"{num}/{den} mar cheudad", lang), _fmt(ans), numeric_check(ans, 0.5), scaffold)
 
 
@@ -398,11 +398,13 @@ def ks_simplify_fractions(lang: str = "en") -> Question:
     if d2 > 12:
         scaffold = sc.fraction_simplify_single_arrow(n2, d2)
     else:
-        kind = random.choice(["wall", "circles"])
+        kind = random.choice(["wall", "circles", "arrow"])
         if kind == "wall":
-            scaffold = sc.fraction_wall_two_rows(n2, d2, simplest.numerator, simplest.denominator)
+            scaffold = sc.fraction_simplify_wall(n2, d2)
+        elif kind == "circles":
+            scaffold = sc.fraction_simplify_circles(n2, d2)
         else:
-            scaffold = sc.fraction_circles_pair(n2, d2, simplest.numerator, simplest.denominator)
+            scaffold = sc.fraction_simplify_single_arrow(n2, d2)
 
     prompt = _t(f"Write {sc.fraction_html(n2, d2)} in its simplest form",
                 f"Sgrìobh {sc.fraction_html(n2, d2)} san riochd as sìmplidh", lang)
@@ -427,16 +429,18 @@ def ks_substitution(lang: str = "en") -> Question:
     if template == "3a-b2":
         expr = "3a - b²"
         ans = 3 * a_v - b_v ** 2
-        steps = [f"a = {a_v}, b = {b_v}", f"3 × {a_v} = {3*a_v}", f"{b_v}² = {b_v**2}", f"{3*a_v} - {b_v**2}"]
+        lines = [("", "3a − b²"), ("=", "3 × [] − []²"), ("=", "[] − []")]
     elif template == "2a+bc":
         expr = "2a + bc"
         ans = 2 * a_v + b_v * c_v
-        steps = [f"a = {a_v}, b = {b_v}, c = {c_v}", f"2 × {a_v} = {2*a_v}", f"{b_v} × {c_v} = {b_v*c_v}", f"{2*a_v} + {b_v*c_v}"]
+        lines = [("", "2a + bc"), ("=", "2 × [] + [] × []"), ("=", "[] + []")]
     else:
         expr = "ab - c"
         ans = a_v * b_v - c_v
-        steps = [f"a = {a_v}, b = {b_v}, c = {c_v}", f"{a_v} × {b_v} = {a_v*b_v}", f"{a_v*b_v} - {c_v}"]
-    scaffold = sc.hint_list(steps)
+        lines = [("", "ab − c"), ("=", "[] × [] − []"), ("=", "[] − []")]
+    # Working lines: the pupil substitutes the values in themselves, then
+    # works each part out — nothing worked out is printed.
+    scaffold = sc.working_lines(lines)
     prompt = _t(f"If a = {a_v}, b = {b_v}, c = {c_v}, what is the value of {expr}?",
                 f"Ma tha a = {a_v}, b = {b_v}, c = {c_v}, dè an luach a th' aig {expr}?", lang)
     return Question(prompt, str(ans), numeric_check(ans), scaffold)
@@ -449,7 +453,9 @@ def ks_simple_directed_number(lang: str = "en") -> Question:
     ans = a + b if op == "+" else a - b
     a_str = f"({a})" if a < 0 else str(a)
     lo, hi = min(a, ans), max(a, ans)
-    scaffold = sc.number_line(lo - 3, hi + 3, jumps=[(a, ans, ("+" if op == "+" else "-") + str(b), True)], circle=a, hide_value=ans)
+    scaffold = sc.number_line(lo - 3, hi + 3, jumps=[(a, ans, ("+" if op == "+" else "−") + str(b), True)], circle=a, hide_value=ans)
+    if op == "+" and a < 0 and random.random() < 0.5:  # a ≥ −12, b ≤ 12, so rows always fit
+        scaffold = sc.directed_number_counters(-a, b)  # SC-022: pair up and count what's left
     return Question(f"{a_str} {op} {b}", str(ans), numeric_check(ans), scaffold)
 
 
@@ -458,7 +464,11 @@ def ks_add_negative_number(lang: str = "en") -> Question:
     b = random.randint(1, 15)
     ans = a + (-b)
     lo, hi = min(a, ans), max(a, ans)
-    scaffold = sc.number_line(lo - 3, hi + 3, jumps=[(a, ans, f"-{b}", True)], circle=a, hide_value=ans)
+    reds, yellows = b + max(0, -a), max(0, a)
+    if reds <= 15 and random.random() < 0.5:  # SC-022 counters, only while each row fits
+        scaffold = sc.directed_number_counters(reds, yellows)
+    else:
+        scaffold = sc.number_line(lo - 3, hi + 3, jumps=[(a, ans, f"−{b}", True)], circle=a, hide_value=ans)
     return Question(f"{a} + ({-b})", str(ans), numeric_check(ans), scaffold)
 
 
@@ -467,8 +477,11 @@ def ks_subtract_negative_number(lang: str = "en") -> Question:
     b = random.randint(1, 15)
     ans = a - (-b)
     lo, hi = min(a, ans), max(a, ans)
-    scaffold = sc.number_line(lo - 3, hi + 3, jumps=[(a, ans, f"+{b}", True)], circle=a, hide_value=ans)
-    return Question(f"{a} - ({-b})", str(ans), numeric_check(ans), scaffold)
+    # SC-021 (rule + rewrite + number line) or SC-107 (counters, step by step)
+    # counters only while the boards stay a sensible size
+    small = abs(a) + b <= 15
+    scaffold = random.choice([sc.subtract_negative_number_line(a, b)] + ([sc.counters_subtract_negative_steps(a, b)] if small else []))
+    return Question(f"{a} − ({-b})", str(ans), numeric_check(ans), scaffold)
 
 
 def ks_round_to_significant_figures(lang: str = "en") -> Question:
@@ -484,12 +497,17 @@ def ks_round_to_significant_figures(lang: str = "en") -> Question:
         return round(x * factor) / factor
 
     ans = round_sig(n, sf)
-    scaffold = sc.hint_list([
-        _t("Count significant figures from the first non-zero digit.",
-           "Cunnt na figearan brìoghmhor bhon chiad fhigear nach eil na neoni.", lang),
-        _t(f"Keep the first {sf}, then round the next digit.",
-           f"Cùm a' chiad {sf}, an uairsin cuairtich an ath fhigear.", lang),
-    ])
+    if n < 1:  # SC-026 / SC-027
+        scaffold = sc.rounding_sig_figs_chart_decimal(n, sf, scaffolded=(s := random.random() < 0.5), with_number_line=s)
+    elif n >= 1000:  # SC-023 / SC-024 / SC-025
+        kind = random.choice(["line", "chart", "chart_scaffolded"])
+        if kind == "line":
+            scaffold = sc.rounding_number_line_sig_figs(n, sf)
+        else:
+            sc_ = kind == "chart_scaffolded"
+            scaffold = sc.rounding_sig_figs_chart_whole(int(n), sf, scaffolded=sc_, with_number_line=sc_)
+    else:
+        scaffold = sc.rounding_number_line_sig_figs(n, sf)  # SC-023
     prompt = _t(f"Round {n} to {sf} significant figure{'s' if sf > 1 else ''}",
                 f"Cuairtich {n} gu {sf} figear brìoghmhor", lang)
     return Question(prompt, _fmt(ans), numeric_check(ans, abs(ans) * 0.02 + 1e-9), scaffold)
@@ -499,8 +517,7 @@ def ks_factors(lang: str = "en") -> Question:
     n = random.choice([12, 18, 20, 24, 30, 36, 40, 45, 48, 60])
     candidate = random.randint(2, n // 2 + 1)
     is_factor = n % candidate == 0
-    scaffold = sc.hint_list([_t(f"Does {candidate} divide exactly into {n} with no remainder?",
-                                 f"A bheil {candidate} a' roinn gu pongail a-steach do {n} gun fhuidheall?", lang)])
+    scaffold = sc.factor_check_prompt(n, candidate)  # SC-028
     prompt = _t(f"Is {candidate} a factor of {n}?", f"A bheil {candidate} na fhactar de {n}?", lang)
     ans_display = _t("Yes" if is_factor else "No", "Tha" if is_factor else "Chan eil", lang)
     return Question(prompt, ans_display, yes_no_check(is_factor), scaffold)
@@ -510,10 +527,14 @@ def ks_multiples(lang: str = "en") -> Question:
     n = random.randint(3, 12)
     count = 4
     ans_list = [n * i for i in range(1, count + 1)]
-    scaffold = sc.hint_list([
-        _t(f"Multiples of {n}: keep adding {n} each time.", f"Iomadan de {n}: cùm a' cur {n} ris gach turas.", lang),
-        f"{n}, {n*2}, …",
-    ])
+    kind = random.choice(["number_line", "array", "array_scaffolded"])
+    if kind == "number_line":  # SC-029: chained +n hops, every landing blank
+        scaffold = sc.number_line(0, n * count + 2, jumps=[(n * i, n * (i + 1), f"+{n}", False) for i in range(count)],
+                                  hide_value=ans_list)
+    elif kind == "array":  # SC-030
+        scaffold = sc.multiples_array(n, count)
+    else:  # SC-031
+        scaffold = sc.multiples_array(n, count, prefill=2)
     prompt = _t(f"List the first {count} multiples of {n}", f"Sgrìobh a' chiad {count} iomadan de {n}", lang)
     return Question(prompt, ", ".join(map(str, ans_list)), list_check(ans_list), scaffold)
 
@@ -522,11 +543,10 @@ def ks_square_numbers_and_roots(lang: str = "en") -> Question:
     n = random.randint(2, 15)
     if random.random() < 0.5:
         ans = n * n
-        scaffold = sc.hint_list([_t(f"{n}² means {n} × {n}.", f"Tha {n}² a' ciallachadh {n} × {n}.", lang)])
+        scaffold = sc.square_number_array(n)
         return Question(_t(f"What is {n}²?", f"Dè a th' ann an {n}²?", lang), str(ans), numeric_check(ans), scaffold)
     ans = n
-    scaffold = sc.hint_list([_t(f"Which number multiplied by itself gives {n*n}?",
-                                 f"Dè an àireamh a bheir {n*n}, ma dh'iomadaicheas tu i le fhèin?", lang)])
+    scaffold = random.choice([sc.square_root_area(n * n), sc.square_root_function_machine(n * n)])
     prompt = _t(f"What is the positive value of √{n*n}?", f"Dè an luach dearbhach a th' aig √{n*n}?", lang)
     return Question(prompt, str(ans), numeric_check(ans), scaffold)
 
@@ -535,11 +555,13 @@ def ks_cube_numbers_and_roots(lang: str = "en") -> Question:
     n = random.randint(2, 10)
     if random.random() < 0.5:
         ans = n ** 3
-        scaffold = sc.hint_list([_t(f"{n}³ means {n} × {n} × {n}.", f"Tha {n}³ a' ciallachadh {n} × {n} × {n}.", lang)])
+        if n <= 4:  # the isometric cube's face grids get too fine beyond 4
+            scaffold = sc.cube_number_stack(n)
+        else:
+            scaffold = sc.hint_list([_t(f"{n}³ means {n} × {n} × {n}.", f"Tha {n}³ a' ciallachadh {n} × {n} × {n}.", lang)])
         return Question(_t(f"What is {n}³?", f"Dè a th' ann an {n}³?", lang), str(ans), numeric_check(ans), scaffold)
     ans = n
-    scaffold = sc.hint_list([_t(f"Which number, cubed, gives {n**3}?",
-                                 f"Dè an àireamh, air a ciùbadh, a bheir {n**3}?", lang)])
+    scaffold = random.choice([sc.cube_root_volume(n ** 3), sc.cube_root_function_machine(n ** 3)])
     prompt = _t(f"What is the value of ∛{n**3}?", f"Dè an luach a th' aig ∛{n**3}?", lang)
     return Question(prompt, str(ans), numeric_check(ans), scaffold)
 
@@ -557,7 +579,7 @@ def ks_equivalent_fractions(lang: str = "en") -> Question:
     # paired with a worked example of the method using different numbers
     # — so the picture always relates to the actual question without ever
     # giving away the missing value.
-    kind = random.choice(["wall", "circles", "arrows"])
+    kind = random.choice(["wall", "circles", "arrows", "numberline"])
     scaffold = sc.fraction_equivalent_scaffold(num, den, kind)
 
     if missing_side == "den":
@@ -575,8 +597,9 @@ def ks_fraction_of_amount(lang: str = "en") -> Question:
     unit = random.randint(2, 20)
     total = unit * den
     ans = unit * num
-    if random.choice(["bar", "array"]) == "bar":
-        scaffold = sc.bar_model(str(total), [("", 1)] * den, single_color="#a3c9f9")
+    # Dot array only while it stays a readable size; bar model otherwise.
+    if total > 40 or random.choice(["bar", "array"]) == "bar":
+        scaffold = sc.fraction_of_amount_bar(total, den, num)
     else:
         scaffold = sc.fraction_array(total, den, num)
     prompt = _t(f"What is {num}/{den} of {total}?", f"Dè a th' ann an {num}/{den} de {total}?", lang)
@@ -587,7 +610,10 @@ def ks_percentage_of_amount(lang: str = "en") -> Question:
     amount = random.choice([20, 40, 50, 60, 80, 100, 120, 150, 200, 240, 300])
     pct = random.choice([5, 10, 15, 20, 25, 30, 40, 50, 75, 10])
     ans = round(amount * pct / 100, 2)
-    scaffold = sc.percentage_bar_model(amount, pct)
+    if random.choice(["bar", "table"]) == "bar":
+        scaffold = sc.percentage_bar_model(amount, pct)
+    else:
+        scaffold = sc.percentage_table(amount, pct)
     prompt = _t(f"What is {pct}% of £{amount}?", f"Dè a th' ann an {pct}% de £{amount}?", lang)
     return Question(prompt, f"£{_fmt(ans)}", numeric_check(ans, 0.5), scaffold)
 
@@ -643,7 +669,15 @@ def _bond_question(target: int, lang: str = "en") -> Question:
     else:
         prompt = f"{known} + ☐ = {target}"
         ans = other
-    scaffold = sc.ten_frame_pair(known, target, note=f"Solid dots = the number you already have. Dashed dots = what's needed to reach {target}.")
+    unknown = {"blank_result": "total", "blank_first": "first", "blank_second": "second"}[style]
+    kinds = ["frame", "number_line"] + (["dice"] if sc.bond_dice_ok(target) else [])
+    kind = random.choice(kinds)
+    if kind == "frame":
+        scaffold = sc.bond_frame(known, other, target, unknown)
+    elif kind == "number_line":
+        scaffold = sc.bond_number_line(known, other, target, unknown)
+    else:
+        scaffold = sc.bond_dice(known, other, target, unknown)
     return Question(prompt, str(ans), numeric_check(ans), scaffold)
 
 
@@ -664,15 +698,16 @@ def _bond_question_mixed(target: int, lang: str = "en") -> Question:
         ans = b
         given, gap = a, b
 
+    unknown = {"sum": "total", "first": "first", "second": "second"}[style]
     kind = random.choice(["numicon", "number_line", "ten_frame", "dienes"])
     if kind == "numicon":
-        scaffold = sc.numicon_bond(given, gap)
+        scaffold = sc.numicon_bond_real(a, b, unknown)
     elif kind == "number_line":
-        scaffold = sc.number_line(0, target + 2, jumps=[(given, target, "+?", True)], circle=given)
+        scaffold = sc.bond_number_line(a, b, target, unknown)
     elif kind == "ten_frame":
-        scaffold = sc.ten_frame_pair(given, target)
+        scaffold = sc.bond_frame(a, b, target, unknown)
     else:
-        scaffold = sc.dienes_partition_near(given, gap)
+        scaffold = sc.dienes_bond(a, b, unknown)
     return Question(prompt, str(ans), numeric_check(ans), scaffold)
 
 
@@ -692,21 +727,45 @@ def ms_number_bonds_to_20(lang: str = "en") -> Question:
     known = random.randint(1, 19)
     other = 20 - known
     ans = other
-    scaffold = sc.number_line(0, 20, jumps=[(known, 20, "+?", True)], circle=known)
+    kind = random.choice(["number_line", "dienes", "numicon", "rekenrek", "dice"])
+    if kind == "number_line":
+        scaffold = sc.bond_number_line(other, known, 20, "first")
+    elif kind == "dienes":
+        scaffold = sc.dienes_bonds_to_100(known, 20)
+    elif kind == "numicon":
+        scaffold = sc.numicon_bond_to_target(known, 20)
+    elif kind == "rekenrek":
+        scaffold = sc.rekenrek(known)
+    else:
+        scaffold = sc.dice_fives_bond(known, 20)
     return Question(f"☐ + {known} = 20", str(ans), numeric_check(ans), scaffold)
 
 
 def ms_number_bonds_to_100(lang: str = "en") -> Question:
     known = random.choice(range(1, 100, 1))
     ans = 100 - known
-    scaffold = sc.dienes_bonds_to_100(known)
+    kind = random.choice(["dienes", "hundred_square", "number_line"])
+    if kind == "dienes":
+        scaffold = sc.dienes_bonds_to_100(known)
+    elif kind == "hundred_square":
+        scaffold = sc.hundred_square_bond(known)
+    else:
+        scaffold = sc.bridge_to_100_number_line(known)
     return Question(f"{known} + ☐ = 100", str(ans), numeric_check(ans), scaffold)
 
 
 def ms_double_single_digit(lang: str = "en") -> Question:
     n = random.randint(1, 5)
     ans = n * 2
-    scaffold = sc.double_frame(n, note=f"Double means {n} + {n}.")
+    kind = random.choice(["frame", "numicon", "dienes", "number_line"])
+    if kind == "frame":
+        scaffold = sc.double_frame(n)
+    elif kind == "numicon":
+        scaffold = sc.double_numicon(n)
+    elif kind == "dienes":
+        scaffold = sc.double_dienes(n)
+    else:
+        scaffold = sc.double_number_line(n)
     style = random.choice(["double", "plus"])
     if style == "double":
         return Question(_t(f"Double {n}", f"Dùblaich {n}", lang), str(ans), numeric_check(ans), scaffold)
@@ -716,7 +775,13 @@ def ms_double_single_digit(lang: str = "en") -> Question:
 def ms_double_two_digit(lang: str = "en") -> Question:
     n = random.randint(11, 49)
     ans = n * 2
-    scaffold = sc.double_dienes(n)
+    kind = random.choice(["dienes", "partition", "number_line"])
+    if kind == "dienes":
+        scaffold = sc.double_dienes(n)
+    elif kind == "partition":
+        scaffold = sc.double_partition(n)
+    else:
+        scaffold = sc.double_empty_number_line(n)
     style = random.choice(["double", "plus"])
     if style == "double":
         return Question(_t(f"Double {n}", f"Dùblaich {n}", lang), str(ans), numeric_check(ans), scaffold)
@@ -726,7 +791,16 @@ def ms_double_two_digit(lang: str = "en") -> Question:
 def ms_halve_single_digit(lang: str = "en") -> Question:
     n = random.choice([2, 4, 6, 8]) if random.random() < 0.7 else random.randint(1, 9)
     ans = n / 2
-    scaffold = sc.halving_columns(n)
+    kinds = ["columns", "number_line", "dienes"] + (["numicon"] if n % 2 == 0 else [])
+    kind = random.choice(kinds)
+    if kind == "columns":
+        scaffold = sc.halving_columns(n)
+    elif kind == "numicon":
+        scaffold = sc.halve_numicon(n)
+    elif kind == "number_line":
+        scaffold = sc.halve_number_line(n)
+    else:
+        scaffold = sc.halving_dienes(n)
     style = random.choice(["halve", "div"])
     if style == "halve":
         return Question(_t(f"Halve {n}", f"Gabh leth de {n}", lang), _fmt(ans), numeric_check(ans, 0.01), scaffold)
@@ -736,7 +810,13 @@ def ms_halve_single_digit(lang: str = "en") -> Question:
 def ms_halve_two_digit(lang: str = "en") -> Question:
     n = random.choice([n for n in range(20, 99) if n % 2 == 0]) if random.random() < 0.6 else random.randint(20, 99)
     ans = n / 2
-    scaffold = sc.halving_dienes(n)
+    kind = random.choice(["dienes", "partition", "number_line"])
+    if kind == "dienes":
+        scaffold = sc.halving_dienes(n)
+    elif kind == "partition":
+        scaffold = sc.halve_partition(n)
+    else:
+        scaffold = sc.halve_empty_number_line(n)
     style = random.choice(["halve", "div", "half_of"])
     if style == "halve":
         return Question(_t(f"Halve {n}", f"Gabh leth de {n}", lang), _fmt(ans), numeric_check(ans, 0.01), scaffold)
@@ -749,25 +829,41 @@ def ms_add_10(lang: str = "en") -> Question:
     n = random.randint(1, 90)
     ans = n + 10
     order = random.choice([f"10 + {n}", f"{n} + 10"])
-    scaffold = sc.hundred_square(n, ans)
+    kind = random.choice(["hundred_square", "dienes", "number_line"])
+    if kind == "hundred_square":
+        scaffold = sc.hundred_square_step(n, 10)
+    elif kind == "dienes":
+        scaffold = sc.dienes_add_tens(n, 10)
+    else:
+        scaffold = sc.ten_step_number_line(n, 10)
     return Question(order, str(ans), numeric_check(ans), scaffold)
 
 
 def ms_subtract_10(lang: str = "en") -> Question:
     n = random.randint(11, 100)
     ans = n - 10
-    scaffold = sc.hundred_square(n, ans)
+    # Dienes needs a ten-rod to cross out, so not for 100 (a single flat)
+    kind = random.choice(["hundred_square", "number_line"] + (["dienes"] if n < 100 else []))
+    if kind == "hundred_square":
+        scaffold = sc.hundred_square_step(n, -10)
+    elif kind == "dienes":
+        scaffold = sc.dienes_subtract_tens(n, 10)
+    else:
+        scaffold = sc.ten_step_number_line(n, -10)
     return Question(f"{n} − 10", str(ans), numeric_check(ans), scaffold)
 
 
 def ms_add_9(lang: str = "en") -> Question:
     n = random.randint(4, 95)
     ans = n + 9
-    scaffold = sc.number_line(
-        n - 2, n + 11,
-        jumps=[(n, n + 10, "+10", False), (n + 10, ans, "-1", False)],
-        circle=n, hide_value=ans,
-    )
+    kinds = ["number_line", "dienes"] + (["hundred_square"] if sc.hundred_square_add_9_ok(n) else [])
+    kind = random.choice(kinds)
+    if kind == "number_line":
+        scaffold = sc.add_9_number_line(n)
+    elif kind == "dienes":
+        scaffold = sc.dienes_add_9(n)
+    else:
+        scaffold = sc.hundred_square_add_9(n)
     order = random.choice([f"{n} + 9", f"9 + {n}"])
     return Question(order, str(ans), numeric_check(ans), scaffold)
 
@@ -779,7 +875,15 @@ def ms_add_within_20_bridge_10(lang: str = "en") -> Question:
         if a + b > 10:
             break
     ans = a + b
-    scaffold = sc.bridge_ten_frames(a, b)
+    kind = random.choice(["frames", "number_line", "rekenrek", "numicon"])
+    if kind == "frames":
+        scaffold = sc.bridge_ten_frames(a, b)
+    elif kind == "number_line":
+        scaffold = sc.bridge_number_line(a, b)
+    elif kind == "rekenrek":
+        scaffold = sc.rekenrek_bridge(a, b)
+    else:
+        scaffold = sc.numicon_bridge(a, b)
     order = random.choice([f"{a} + {b}", f"{b} + {a}"])
     return Question(order, str(ans), numeric_check(ans), scaffold)
 
@@ -788,7 +892,13 @@ def ms_add_multiples_of_10(lang: str = "en") -> Question:
     n = random.randint(1, 150)
     m = random.choice([10, 20, 30, 40, 50, 60, 70, 80, 90])
     ans = n + m
-    scaffold = sc.dienes_add_tens(n, m)
+    kind = random.choice(["dienes", "number_line"] + (["hundred_square"] if ans <= 100 else []))
+    if kind == "dienes":
+        scaffold = sc.dienes_add_tens(n, m)
+    elif kind == "number_line":
+        scaffold = sc.tens_jumps_number_line(n, m)
+    else:
+        scaffold = sc.hundred_square_step(n, m)
     return Question(f"{n} + {m}", str(ans), numeric_check(ans), scaffold)
 
 
@@ -799,7 +909,13 @@ def ms_subtract_multiples_of_10(lang: str = "en") -> Question:
     n = hundreds * 100 + tens_digit * 10 + ones
     m = random.randint(1, tens_digit) * 10
     ans = n - m
-    scaffold = sc.dienes_subtract_tens(n, m)
+    kind = random.choice(["dienes", "number_line"] + (["hundred_square"] if n <= 100 and ans >= 1 else []))
+    if kind == "dienes":
+        scaffold = sc.dienes_subtract_tens(n, m)
+    elif kind == "number_line":
+        scaffold = sc.tens_jumps_number_line(n, -m)
+    else:
+        scaffold = sc.hundred_square_step(n, -m)
     return Question(f"{n} − {m}", str(ans), numeric_check(ans), scaffold)
 
 
@@ -809,7 +925,13 @@ def ms_how_many_to_multiple_of_10(lang: str = "en") -> Question:
     if target == n:
         target += 10
     ans = target - n
-    scaffold = sc.number_line(max(0, n - 15), target + 5, jumps=[(n, target, "+?", True)], circle=target)
+    kind = random.choice(["number_line", "dienes", "ten_frame"])
+    if kind == "number_line":
+        scaffold = sc.number_line(max(0, n - 15), target + 5, jumps=[(n, target, "?", True)], circle=[n, target])
+    elif kind == "dienes":
+        scaffold = sc.dienes_partition_near(n, ans)
+    else:
+        scaffold = sc.ones_to_ten_frame(n)
     return Question(f"{n} + ☐ = {target}", str(ans), numeric_check(ans), scaffold)
 
 
@@ -819,7 +941,13 @@ def ms_add_near_doubles(lang: str = "en") -> Question:
     b = a + diff
     ans = a + b
     lo, hi = min(a, b), max(a, b)
-    scaffold = sc.near_doubles_dienes(lo, hi - lo)
+    kind = random.choice(["dienes", "partition", "number_line"])
+    if kind == "dienes":
+        scaffold = sc.near_doubles_dienes(lo, hi - lo)
+    elif kind == "partition":
+        scaffold = sc.near_double_partition(lo, hi - lo)
+    else:
+        scaffold = sc.near_double_number_line(lo, hi - lo)
     return Question(f"{a} + {b}", str(ans), numeric_check(ans), scaffold)
 
 
@@ -827,7 +955,16 @@ def ms_partition_single_digit(lang: str = "en") -> Question:
     total = random.randint(4, 9)
     part = random.randint(1, total - 1)
     ans = total - part
-    scaffold = sc.ten_frame_pair(part, total, note=f"Solid dots show {part}; the dashed dots show what's needed to make {total}.")
+    # Same as a number bond "part + ☐ = total" — reuse the MS1/MS30 set.
+    kind = random.choice(["frame", "number_line", "numicon", "dienes"])
+    if kind == "frame":
+        scaffold = sc.bond_frame(part, ans, total, "second")
+    elif kind == "number_line":
+        scaffold = sc.bond_number_line(part, ans, total, "second")
+    elif kind == "numicon":
+        scaffold = sc.numicon_bond_real(part, ans, "second")
+    else:
+        scaffold = sc.dienes_bond(part, ans, "second")
     return Question(f"{total} = {part} + ☐", str(ans), numeric_check(ans), scaffold)
 
 
@@ -842,7 +979,7 @@ def ms_partition_two_digit(lang: str = "en") -> Question:
             kinds.append("ten_frames")
         kind = random.choice(kinds)
         if kind == "number_line":
-            scaffold = sc.number_line(0, total + 5, jumps=[(tens, total, "+?", True)], circle=tens)
+            scaffold = sc.empty_hop_line(tens, total)
         elif kind == "dienes":
             scaffold = sc.dienes_partition_tens(tens, ones)
         else:
@@ -854,7 +991,7 @@ def ms_partition_two_digit(lang: str = "en") -> Question:
     ans = total - part
     kind = random.choice(["number_line", "dienes"])
     if kind == "number_line":
-        scaffold = sc.number_line(max(0, part - 3), total + 3, jumps=[(part, total, "+?", True)], circle=total)
+        scaffold = sc.number_line(max(0, part - 3), total + 3, jumps=[(part, total, "?", True)], circle=[part, total])
     else:
         scaffold = sc.dienes_partition_near(part, ans)
     return Question(f"{total} = {part} + ☐", str(ans), numeric_check(ans), scaffold)
@@ -862,27 +999,39 @@ def ms_partition_two_digit(lang: str = "en") -> Question:
 
 def ms_add_bridge_10(lang: str = "en") -> Question:
     a = random.randint(4, 98)
+    while a % 10 == 0:  # the bridge must be to a real multiple of 10
+        a = random.randint(4, 98)
     bridge = 10 - (a % 10)
-    if bridge == 10:
-        bridge = random.randint(1, 5)
     b = bridge + random.randint(1, 8)
     remainder = b - bridge
     landmark = a + bridge
     ans = remainder
-    scaffold = sc.number_line(a - 5, landmark + b, jumps=[(a, landmark, f"+{bridge}", False), (landmark, landmark + remainder, "+?", True)], circle=landmark)
+    kind = random.choice(["number_line", "empty_line", "dienes"])
+    if kind == "number_line":
+        scaffold = sc.number_line(a - 5, landmark + b, jumps=[(a, landmark, f"+{bridge}", False), (landmark, landmark + remainder, "+?", True)], circle=landmark)
+    elif kind == "empty_line":
+        scaffold = sc.bridge_ten_empty_line(a, bridge, 1)
+    else:
+        scaffold = sc.dienes_bridge_add(a, b)
     return Question(f"{a} + {b} = {a} + {bridge} + ☐", str(ans), numeric_check(ans), scaffold)
 
 
 def ms_subtract_bridge_10(lang: str = "en") -> Question:
-    a = random.randint(20, 99)
+    a = random.randint(21, 99)
+    while a % 10 == 0:  # the bridge must be back to a real multiple of 10
+        a = random.randint(21, 99)
     to_ten = a % 10
-    if to_ten == 0:
-        to_ten = random.randint(1, 9)
     b = to_ten + random.randint(1, 8)
     remainder = b - to_ten
     landmark = a - to_ten
     ans = remainder
-    scaffold = sc.number_line(max(0, landmark - b), a + 5, jumps=[(a, landmark, f"-{to_ten}", False), (landmark, landmark - remainder, "-?", True)], circle=landmark)
+    kind = random.choice(["number_line", "empty_line", "dienes"])
+    if kind == "number_line":
+        scaffold = sc.number_line(max(0, landmark - b), a + 5, jumps=[(a, landmark, f"−{to_ten}", False), (landmark, landmark - remainder, "−?", True)], circle=landmark)
+    elif kind == "empty_line":
+        scaffold = sc.bridge_ten_empty_line(a, to_ten, -1)
+    else:
+        scaffold = sc.dienes_bridge_subtract(a, b)
     return Question(f"{a} − {b} = {a} − {to_ten} − ☐", str(ans), numeric_check(ans), scaffold)
 
 
@@ -890,7 +1039,7 @@ def ms_count_smallest_to_largest(lang: str = "en") -> Question:
     small = random.randint(50, 990)
     diff = random.randint(1, 6)
     large = small + diff
-    scaffold = sc.number_line(small - 2, large + 2, jumps=[(small, large, "+?", True)], circle=large)
+    scaffold = sc.number_line(small - 2, large + 2, jumps=[(small, large, "?", True)], circle=[small, large])
     return Question(f"{large} − {small}", str(diff), numeric_check(diff), scaffold)
 
 
@@ -911,7 +1060,13 @@ def ms_multiplication_repeated_addition(lang: str = "en") -> Question:
     times = random.randint(2, 6)
     addition = " + ".join([str(n)] * times)
     ans = times
-    scaffold = sc.repeated_groups(n, times)
+    kind = random.choice(["towers", "number_line", "array"])
+    if kind == "towers":
+        scaffold = sc.repeated_groups(n, times)
+    elif kind == "number_line":
+        scaffold = sc.equal_hops_line(n, times)
+    else:
+        scaffold = sc.dot_array(times, n)
     return Question(f"{addition} = ☐ × {n}", str(ans), numeric_check(ans), scaffold)
 
 
@@ -920,7 +1075,14 @@ def ms_division_inverse_multiplication(lang: str = "en") -> Question:
     b = random.randint(2, 9)
     product = a * b
     ans = b
-    scaffold = sc.repeated_groups(b, a)
+    kind = random.choice(["towers", "number_line", "array"])
+    if kind == "towers":
+        scaffold = sc.repeated_groups(b, a)
+    elif kind == "number_line":
+        # hops of a landing on the product — count the hops to get b
+        scaffold = sc.equal_hops_line(a, b, end_label=str(product))
+    else:
+        scaffold = sc.dot_array(a, b)
     prompt = _t(f"{a} × {b} = {product}, so {product} ÷ {a} = ☐",
                 f"{a} × {b} = {product}, mar sin {product} ÷ {a} = ☐", lang)
     return Question(prompt, str(ans), numeric_check(ans), scaffold)
@@ -939,17 +1101,13 @@ def ms_equivalent_calc_addition(lang: str = "en") -> Question:
         # Keep the first number whole here (rather than also rounding it
         # down) so the line starts on the same number the equation does.
         ans = b_rem
-        scaffold = sc.number_line(
-            a - 2, total + 3,
-            jumps=[(a, a + b_round, f"+{b_round}", False), (a + b_round, total, "+?", True)],
-            circle=a, hide_value=total,
-        )
+        scaffold = sc.two_hop_empty_line(a, f"+{b_round}")
         return Question(f"{a} + {b} = {a} + {b_round} + ☐", str(ans), numeric_check(ans), scaffold)
     ans = a_rem + b_rem
     if kind == "dienes":
         scaffold = sc.dienes_partition_pair(a_round, a_rem, b_round, b_rem)
     else:
-        scaffold = sc.bar_model(f"{a} + {b}", [(str(a_round), a_round), (str(b_round), b_round), ("?", max(ans, 1))])
+        scaffold = sc.bar_model(f"{a} + {b}", [(str(a_round), a_round), (str(b_round), b_round), ("?", max(ans, 1))], single_color="#a3c9f9")
     return Question(f"{a} + {b} = {a_round} + {b_round} + ☐", str(ans), numeric_check(ans), scaffold)
 
 
@@ -963,7 +1121,7 @@ def ms_24_hour_clock(lang: str = "en") -> Question:
         if h12 == 0:
             h12 = 12
         ans = f"{h12}:{m:02d} {suffix}"
-        scaffold = sc.clock_face(h, m, note="Subtract 12 from the hour if it's 13 or more, and use am/pm.")
+        scaffold = random.choice([sc.clock_face(h, m), sc.hour_conversion_strip(h, given="24")])
         prompt = _t(f"Write {h:02d}:{m:02d} in 12-hour clock format",
                     f"Sgrìobh {h:02d}:{m:02d} ann an cruth uaireadair 12-uair", lang)
         return Question(prompt, ans, any_of_check([ans, ans.replace(" ", "")]), scaffold)
@@ -975,10 +1133,29 @@ def ms_24_hour_clock(lang: str = "en") -> Question:
         h24 = 12 if h12 == 12 else h12 + 12
     m2 = random.choice([0, 5, 10, 15, 20, 30, 40, 45, 50])
     ans = f"{h24:02d}:{m2:02d}"
-    scaffold = sc.clock_face(h24, m2, note="Add 12 to the hour for pm times (except 12 pm itself).")
+    scaffold = random.choice([sc.clock_face(h24, m2), sc.hour_conversion_strip(h24, given="12")])
     prompt = _t(f"Write {h12}:{m2:02d} {suffix} in 24-hour clock format",
                 f"Sgrìobh {h12}:{m2:02d} {suffix} ann an cruth uaireadair 24-uair", lang)
     return Question(prompt, ans, any_of_check([ans]), scaffold)
+
+
+def _time_hops(t1: int, t2: int, hide_all: bool = False) -> tuple[list, list]:
+    """Stops and hop labels for counting up from t1 to t2 (minutes since
+    midnight): to the next 10, then 10s, then the rest. With hide_all,
+    every hop is labelled "?"."""
+    def as_time(t):
+        return (t // 60) % 24, t % 60
+    cur, stops, labels = t1, [as_time(t1)], []
+    if cur % 10:
+        nxt = min((cur // 10 + 1) * 10, t2)
+        labels.append(f"+{nxt - cur} min"); cur = nxt; stops.append(as_time(cur))
+    while t2 - cur >= 10:
+        cur += 10; labels.append("+10 min"); stops.append(as_time(cur))
+    if t2 > cur:
+        labels.append(f"+{t2 - cur} min"); stops.append(as_time(t2))
+    if hide_all:
+        labels = ["?"] * len(labels)
+    return stops, labels
 
 
 def ms_minutes_to_past(lang: str = "en") -> Question:
@@ -995,7 +1172,7 @@ def ms_minutes_to_past(lang: str = "en") -> Question:
     else:
         prompt = _t(f"{h1:02d}:{m1:02d} is how many minutes before {h2:02d}:{m2:02d}?",
                      f"Cia mheud mionaid ro {h2:02d}:{m2:02d} a tha {h1:02d}:{m1:02d}?", lang)
-    scaffold = sc.clock_face(h1, m1, note=f"Count on from {h1:02d}:{m1:02d} to {h2:02d}:{m2:02d}.")
+    scaffold = sc.elapsed_time_line(*_time_hops(h1 * 60 + m1, h1 * 60 + m1 + diff, hide_all=True))
     return Question(prompt, str(diff), numeric_check(diff), scaffold)
 
 
@@ -1033,7 +1210,10 @@ def ms_elapsed_time(lang: str = "en") -> Question:
     h2, m2 = as_time(t2)
     prompt = _t(f"From {h1:02d}:{m1:02d} to {h2:02d}:{m2:02d} is ☐ minutes elapsed.",
                 f"Bho {h1:02d}:{m1:02d} gu {h2:02d}:{m2:02d} tha ☐ mionaid air a dhol seachad.", lang)
-    scaffold = sc.elapsed_time_line(stops, jump_labels)
+    # Hand the pupil the whole-10 hops but leave the bridging hops ("to the
+    # next 10" and the final part) as "?", so they still do the hard bits.
+    labels = ["+10 min" if lab == "+10 min" else "?" for lab in jump_labels]
+    scaffold = sc.elapsed_time_line(stops, labels)
     return Question(prompt, str(diff), numeric_check(diff), scaffold)
 
 
