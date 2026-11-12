@@ -521,6 +521,11 @@ if "assess" in st.query_params and not st.session_state.get("as_link_used"):
     st.session_state.as_link_used = True
     st.session_state.as_code = st.query_params["assess"]
     st.session_state.stage = "assess_start"
+# A scanned results QR code (…?results=CODE) opens that pupil's report, behind the PIN.
+if "results" in st.query_params and not st.session_state.get("results_link_used"):
+    st.session_state.results_link_used = True
+    st.session_state.results_link = st.query_params["results"]
+    st.session_state.stage = "results_open"
 STAGE_RENDERERS = {
     "landing": render_landing,
     "skill_select": render_skill_select,
@@ -528,10 +533,11 @@ STAGE_RENDERERS = {
     "quiz": render_quiz,
     "results": render_results,
     "teacher": lambda: render_teacher_tools(banner, go),
-    "assess_start": lambda: ap.render_start(banner, go, generate_question_sequence),
+    "assess_start": lambda: ap.render_start(banner, go),
     "assess_fluency": lambda: ap.render_fluency(go, focus_answer_input, tr("answer_placeholder")),
     "assess_break": lambda: ap.render_break(banner, go),
     "assess_concept": lambda: ap.render_concept(go, focus_answer_input, tr("answer_placeholder")),
-    "assess_results": lambda: ap.render_results(banner, go),
+    "assess_results": lambda: ap.render_done(banner, go),
+    "results_open": lambda: ap.render_open_link(banner, go),
 }
 STAGE_RENDERERS[st.session_state.stage]()
