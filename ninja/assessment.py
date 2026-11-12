@@ -12,13 +12,17 @@ the report is shown on screen and can be downloaded.
 from __future__ import annotations
 
 import datetime as _dt
+import hashlib
 import html as _html
+import random
 import re
 import statistics
+import threading
 from dataclasses import dataclass, field
 
 from .curriculum import LEVELS
 from .generators import KEY_SKILLS, MENTAL_STRATEGIES
+from .understanding import concept_items
 
 ALL_SKILLS: dict[str, dict] = {**MENTAL_STRATEGIES, **KEY_SKILLS}
 
@@ -58,6 +62,70 @@ def parse_code(code: str) -> list[str]:
         if tok in ALL_SKILLS and tok not in seen:
             seen.append(tok)
     return seen[:MAX_SKILLS]
+
+
+# --------------------------------------------------------- seeded questions
+# The results code doesn't carry the questions, only a seed: the teacher's
+# device regenerates the exact same questions from it. The generators share
+# Python's global `random`, so generation is done under a lock, and a
+# fingerprint of the questions travels in the code to prove the rebuild matched.
+_GEN_LOCK = threading.Lock()
+
+
+def _sequence(fn, n: int, lang: str, max_attempts: int = 50) -> list:
+    """`n` questions with no repeated prompt where the skill allows it
+    (same rule as practice mode's generate_question_sequence)."""
+    out, seen = [], set()
+    for _ in range(n):
+        q = fn(lang)
+        for _ in range(max_attempts):
+            if q.prompt not in seen:
+                break
+            q = fn(lang)
+        out.append(q)
+        seen.add(q.prompt)
+    return out
+
+
+def _generate(skills: list[str], lang: str, seed: int) -> tuple[list, list]:
+    with _GEN_LOCK:
+        random.seed(seed)
+        fluency = [(sid, q) for sid in skills for q in _sequence(ALL_SKILLS[sid]["fn"], n_fluency(sid), lang)]
+        concept = [(sid, it) for sid in skills for it in concept_items(sid, CONCEPT_QUESTIONS)]
+        random.seed()
+    return fluency, concept
+
+
+def fingerprint(fluency: list, concept: list) -> str:
+    text = "\n".join([q.prompt + "=" + q.answer_display for _, q in fluency]
+                     + [it.prompt + "|" + "|".join(it.options or []) for _, it in concept])
+    return hashlib.sha256(text.encode()).hexdigest()[:8]
+
+
+def build_items(skills: list[str], lang: str, seed: int, expect: str = "", tries: int = 8):
+    """(fluency, concept, fingerprint) for this seed. Practice-mode pupils
+    also draw from the shared `random`; if one does so mid-generation the
+    questions come out different, so generate twice (or against the expected
+    fingerprint) and retry until they agree."""
+    for _ in range(tries):
+        fluency, concept = _generate(skills, lang, seed)
+        fp = fingerprint(fluency, concept)
+        if fp == (expect or fingerprint(*_generate(skills, lang, seed))):
+            return fluency, concept, fp
+    raise ValueError("Couldn't rebuild these questions — the code may be from a different version of the app.")
+
+
+def score(skills: list[str], fluency: list, concept: list, f_given: list, c_given: list) -> list["SkillResult"]:
+    """Mark the answers. `f_given` / `c_given` are (answer text, seconds)
+    lists in question order."""
+    results = {sid: SkillResult(sid) for sid in skills}
+    for (sid, q), (given, secs) in zip(fluency, f_given):
+        results[sid].fluency.append(Response(sid, q.prompt, q.answer_display, given, q.checker(given), secs))
+    for (sid, it), (given, secs) in zip(concept, c_given):
+        ok = it.checker(given)
+        results[sid].concept.append(Response(sid, it.prompt, it.answer_display, given, ok, secs,
+                                             kind=it.kind, note="" if ok else it.notes.get(given, "")))
+    return [results[sid] for sid in skills]
 
 
 @dataclass

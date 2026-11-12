@@ -11,6 +11,7 @@ import re
 import streamlit as st
 import streamlit.components.v1 as components
 
+import assessment_pages as ap
 from ninja import assessment as asmt
 from ninja import trackers
 from ninja.curriculum import EO_DRAFT, LEVELS, eo_label
@@ -213,13 +214,47 @@ def _assessments_tab():
     if base:
         st.markdown("Share this link (e.g. on Teams) — it opens the assessment straight away:")
         st.code(f"{base}?assess={','.join(skills)}", language=None)
-    st.write("Or pupils press **📝 Take an assessment** on the home page and type the code. At the end they "
-             "download their report (HTML, prints to PDF) for you — nothing is stored by the app.")
+    st.write("Or pupils press **📝 Take an assessment** on the home page and type the code. Pupils don't see "
+             "their scores: they finish on a **results code and QR code**. Unlock the report there with your "
+             "PIN, scan the QR code with your own device, or paste codes into **🔓 Open results**. "
+             "Nothing is stored by the app — the code is the result.")
     with st.expander("Fluency target times for these skills"):
         st.table({"Skill": [_label(s) for s in skills],
                   "Target median time": [f"{asmt.target_seconds(s):g} s" for s in skills]})
         st.caption("Targets are starting points and include reading and typing time. "
                    "Change them in ninja/assessment.py (TARGET_SECONDS).")
+
+
+# -------------------------------------------------------------- open results
+def _open_results_tab():
+    if ap.using_default_secrets():
+        st.warning("This app is still using the built-in PIN (1234) and scrambling key. Set your own "
+                   "`teacher_pin` and `results_key` in the app's secrets before using it with a class.")
+    if not ap.pin_gate("tools"):
+        return
+    codes_txt = st.text_area("Paste one or more results codes — one per line", key="rc_codes", height=140)
+    codes = [c for c in codes_txt.splitlines() if c.strip()]
+    if not codes:
+        st.info("Pupils' codes are on their screen when they finish (and in the QR code link).")
+        return
+    opened = []
+    for n, code in enumerate(codes, 1):
+        try:
+            results, pupil, lang = ap.open_code(code)
+            opened.append((pupil or f"Pupil {n}", results, lang))
+        except ValueError as e:
+            st.error(f"Line {n}: {e}")
+    if len(opened) > 1:
+        st.markdown("##### Class summary — suggested tracker levels")
+        skills = list(dict.fromkeys(r.skill_id for _, rs, _ in opened for r in rs))
+        table = {"Pupil": [p for p, _, _ in opened]}
+        for sid in skills:
+            table[sid] = [next((f"{r.profile()[1]} · {r.concept_score}/{len(r.concept)} understanding"
+                                for r in rs if r.skill_id == sid), "") for _, rs, _ in opened]
+        st.table(table)
+    for n, (pupil, results, lang) in enumerate(opened):
+        with st.expander(pupil, expanded=len(opened) == 1):
+            ap.render_report(results, pupil, lang, key=f"tools_{n}")
 
 
 def render_teacher_tools(banner, go):
@@ -228,10 +263,12 @@ def render_teacher_tools(banner, go):
         go("landing")
         st.rerun()
     st.subheader("🧑‍🏫 Teacher tools")
-    tab_ws, tab_tr, tab_as = st.tabs(["🖨️ Worksheets", "📊 Trackers", "📝 Assessments"])
+    tab_ws, tab_tr, tab_as, tab_rc = st.tabs(["🖨️ Worksheets", "📊 Trackers", "📝 Assessments", "🔓 Open results"])
     with tab_ws:
         _worksheets_tab()
     with tab_tr:
         _trackers_tab()
     with tab_as:
         _assessments_tab()
+    with tab_rc:
+        _open_results_tab()
