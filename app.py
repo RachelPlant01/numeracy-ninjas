@@ -12,6 +12,7 @@ import streamlit.components.v1 as components
 
 from ninja import scaffolds as sc
 from ninja.generators import KEY_SKILLS, MENTAL_STRATEGIES
+import assessment_pages as ap
 from teacher_tools import render_teacher_tools
 
 CATEGORIES = {
@@ -338,7 +339,10 @@ def render_landing():
             go("skill_select")
             st.rerun()
     st.divider()
-    if st.button("🧑‍🏫 Teacher tools — worksheets and trackers", use_container_width=True):
+    if st.button("📝 Take an assessment", use_container_width=True):
+        go("assess_start")
+        st.rerun()
+    if st.button("🧑‍🏫 Teacher tools — worksheets, trackers and assessments", use_container_width=True):
         go("teacher")
         st.rerun()
 
@@ -512,6 +516,11 @@ def render_results():
 
 # ------------------------------------------------------------------- router
 init_state()
+# A teacher's assessment link (…?assess=KS7,MS5) opens straight on the start page.
+if "assess" in st.query_params and not st.session_state.get("as_link_used"):
+    st.session_state.as_link_used = True
+    st.session_state.as_code = st.query_params["assess"]
+    st.session_state.stage = "assess_start"
 STAGE_RENDERERS = {
     "landing": render_landing,
     "skill_select": render_skill_select,
@@ -519,5 +528,10 @@ STAGE_RENDERERS = {
     "quiz": render_quiz,
     "results": render_results,
     "teacher": lambda: render_teacher_tools(banner, go),
+    "assess_start": lambda: ap.render_start(banner, go, generate_question_sequence),
+    "assess_fluency": lambda: ap.render_fluency(go, focus_answer_input, tr("answer_placeholder")),
+    "assess_break": lambda: ap.render_break(banner, go),
+    "assess_concept": lambda: ap.render_concept(go, focus_answer_input, tr("answer_placeholder")),
+    "assess_results": lambda: ap.render_results(banner, go),
 }
 STAGE_RENDERERS[st.session_state.stage]()

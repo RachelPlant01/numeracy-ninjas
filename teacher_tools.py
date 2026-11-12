@@ -11,6 +11,7 @@ import re
 import streamlit as st
 import streamlit.components.v1 as components
 
+from ninja import assessment as asmt
 from ninja import trackers
 from ninja.curriculum import EO_DRAFT, LEVELS, eo_label
 from ninja.generators import KEY_SKILLS, MENTAL_STRATEGIES
@@ -179,14 +180,58 @@ def _trackers_tab():
         st.table({"Skill": [_label(s) for s in skills], "Es and Os": [eo_label(s) for s in skills]})
 
 
+# --------------------------------------------------------------- assessments
+def _assessments_tab():
+    st.write("Each assessment checks two things for every skill you choose:")
+    st.markdown(
+        f"- **Fluency (Part A)** — {asmt.FLUENCY_QUESTIONS['MS']} questions per mental strategy and "
+        f"{asmt.FLUENCY_QUESTIONS['KS']} per key skill, with no scaffold and no feedback, every answer timed. "
+        f"*Fluent* = at least {int(asmt.ACCURACY_BAR * 100)}% correct **and** a median time within the target.\n"
+        f"- **Understanding (Part B)** — {asmt.CONCEPT_QUESTIONS} thinking questions per skill: spot the mistake "
+        "(built on common misconceptions), use what you know (derived facts, inverses, patterns), "
+        f"reasoning, estimating and representing. *Understands* = {asmt.UNDERSTANDING_BAR} or more correct.\n"
+        "- Each skill then gets a profile and a suggested tracker level (1–4).")
+    st.table({
+        "": ["Understands", "Not yet"],
+        "Fluent": ["4 · Secure", "2 · Can do it, understanding shaky"],
+        "Accurate, not yet quick": ["3 · Building speed", "2 · Can do it, understanding shaky"],
+        "Not yet accurate": ["2 · Understands, needs practice", "1 · Needs teaching"],
+    })
+
+    skills = _skill_picker("as")
+    if not skills:
+        st.info(f"Choose the skills to assess (up to {asmt.MAX_SKILLS}).")
+        return
+    if len(skills) > asmt.MAX_SKILLS:
+        st.warning(f"Only the first {asmt.MAX_SKILLS} skills will be used — split the rest into a second assessment.")
+        skills = skills[:asmt.MAX_SKILLS]
+    code = " ".join(skills)
+    n_q = sum(asmt.n_fluency(s) + asmt.CONCEPT_QUESTIONS for s in skills)
+    st.markdown(f"##### Assessment code: `{code}`")
+    st.caption(f"{n_q} questions — roughly {max(5, round(n_q * 0.5))}–{round(n_q * 1.0) + 5} minutes.")
+    base = (st.context.url or "").split("?")[0]
+    if base:
+        st.markdown("Share this link (e.g. on Teams) — it opens the assessment straight away:")
+        st.code(f"{base}?assess={','.join(skills)}", language=None)
+    st.write("Or pupils press **📝 Take an assessment** on the home page and type the code. At the end they "
+             "download their report (HTML, prints to PDF) for you — nothing is stored by the app.")
+    with st.expander("Fluency target times for these skills"):
+        st.table({"Skill": [_label(s) for s in skills],
+                  "Target median time": [f"{asmt.target_seconds(s):g} s" for s in skills]})
+        st.caption("Targets are starting points and include reading and typing time. "
+                   "Change them in ninja/assessment.py (TARGET_SECONDS).")
+
+
 def render_teacher_tools(banner, go):
     banner()
     if st.button("← Back"):
         go("landing")
         st.rerun()
     st.subheader("🧑‍🏫 Teacher tools")
-    tab_ws, tab_tr = st.tabs(["🖨️ Worksheets", "📊 Trackers"])
+    tab_ws, tab_tr, tab_as = st.tabs(["🖨️ Worksheets", "📊 Trackers", "📝 Assessments"])
     with tab_ws:
         _worksheets_tab()
     with tab_tr:
         _trackers_tab()
+    with tab_as:
+        _assessments_tab()
