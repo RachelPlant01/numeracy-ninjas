@@ -346,16 +346,16 @@ def render_landing():
     if st.button("🧑‍🏫 Teacher tools — worksheets, trackers and assessments", use_container_width=True):
         go("teacher")
         st.rerun()
-    if st.button("🥷 Algebra Ninjas — worked examples and practice for National 5", use_container_width=True):
+    if st.button("🥋 Algebra Dojo — worked examples and practice for National 5", use_container_width=True):
         go("algebra")
         st.rerun()
 
 
-ALGEBRA_PAGE = Path(__file__).parent / "pages_static" / "algebra_ninjas.html"
+ALGEBRA_PAGE = Path(__file__).parent / "pages_static" / "algebra_dojo.html"
 
 
 def render_algebra():
-    # The Algebra Ninjas page is a self-contained HTML file, shown in an iframe.
+    # The Algebra Dojo page is a self-contained HTML file, shown in an iframe.
     if st.button(tr("back")):
         go("landing")
         st.rerun()
@@ -541,7 +541,7 @@ if "results" in st.query_params and not st.session_state.get("results_link_used"
     st.session_state.results_link_used = True
     st.session_state.results_link = st.query_params["results"]
     st.session_state.stage = "results_open"
-# A direct link (…?algebra) opens the Algebra Ninjas practice page.
+# A direct link (…?algebra) opens the Algebra Dojo practice page.
 if "algebra" in st.query_params and not st.session_state.get("algebra_link_used"):
     st.session_state.algebra_link_used = True
     st.session_state.stage = "algebra"
