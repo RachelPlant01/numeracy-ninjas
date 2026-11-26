@@ -6,6 +6,7 @@ set scaffold-fade options → answer questions one at a time, timed.
 from __future__ import annotations
 
 import time
+from pathlib import Path
 
 import streamlit as st
 import streamlit.components.v1 as components
@@ -345,6 +346,20 @@ def render_landing():
     if st.button("🧑‍🏫 Teacher tools — worksheets, trackers and assessments", use_container_width=True):
         go("teacher")
         st.rerun()
+    if st.button("🥷 Algebra Ninjas — worked examples and practice for National 5", use_container_width=True):
+        go("algebra")
+        st.rerun()
+
+
+ALGEBRA_PAGE = Path(__file__).parent / "pages_static" / "algebra_ninjas.html"
+
+
+def render_algebra():
+    # The Algebra Ninjas page is a self-contained HTML file, shown in an iframe.
+    if st.button(tr("back")):
+        go("landing")
+        st.rerun()
+    components.html(ALGEBRA_PAGE.read_text(encoding="utf-8"), height=1500, scrolling=True)
 
 
 def render_skill_select():
@@ -526,8 +541,13 @@ if "results" in st.query_params and not st.session_state.get("results_link_used"
     st.session_state.results_link_used = True
     st.session_state.results_link = st.query_params["results"]
     st.session_state.stage = "results_open"
+# A direct link (…?algebra) opens the Algebra Ninjas practice page.
+if "algebra" in st.query_params and not st.session_state.get("algebra_link_used"):
+    st.session_state.algebra_link_used = True
+    st.session_state.stage = "algebra"
 STAGE_RENDERERS = {
     "landing": render_landing,
+    "algebra": render_algebra,
     "skill_select": render_skill_select,
     "settings": render_settings,
     "quiz": render_quiz,

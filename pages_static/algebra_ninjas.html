@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Algebra Ninjas Practice</title>
+<style>
+:root{
+  --ninja:#111111; --gold:#C9A227; --goldbg:#FBF5E1; --warn:#C0392B; --warnbg:#FDEDEC;
+  --note:#6B7280; --exbg:#F4F6F8; --line:#D9DDE3; --good:#1E8449; --goodbg:#E9F7EF; --bg:#FFFFFF;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ninja);font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:17px;line-height:1.45}
+.wrap{max-width:1040px;margin:0 auto;padding:16px}
+button{font:inherit;cursor:pointer}
+a{color:inherit}
+
+/* banner */
+.banner{background:var(--ninja);border-radius:10px;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;cursor:pointer}
+.banner .l1{color:var(--gold);font-weight:700;letter-spacing:.42em;font-size:15px}
+.banner .l2{color:#fff;font-weight:800;font-size:40px;line-height:1;letter-spacing:.02em}
+.banner .r{text-align:right}
+.banner .r1{color:var(--gold);font-weight:700;font-size:17px}
+.banner .r2{color:#fff;font-size:14px}
+
+/* maths */
+.m{white-space:nowrap}
+.m i,.qmath i,.step i{font-style:italic;font-family:"Times New Roman",Times,serif;font-size:1.1em;padding:0 .02em}
+sup{font-size:.7em;line-height:0}
+.rt{white-space:nowrap}
+.rad{border-top:1.5px solid currentColor;padding:0 .12em;margin-left:.04em}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 .15em}
+.fr>span{padding:0 .2em;line-height:1.25}
+.fr>span+span{border-top:1.5px solid currentColor}
+.op{margin:0 .35em}
+.bo{margin:0 .22em}
+.tx{font-family:inherit;font-style:normal;margin:0 .3em}
+
+/* home */
+.intro{margin:16px 2px 10px}
+.intro b{color:var(--ninja)}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:8px}
+.col h2{font-size:18px;margin:0;letter-spacing:.03em}
+.col .sub{font-size:13px;color:var(--note);margin-bottom:8px}
+.tile{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:6px}
+.tile:hover{border-color:var(--ninja)}
+.tile .qn{flex:0 0 auto;background:var(--ninja);color:var(--gold);font-weight:700;border-radius:5px;padding:2px 7px;font-size:14px;min-width:42px;text-align:center}
+.tile .nm{flex:1;font-size:15px}
+.tile .st{flex:0 0 auto;color:var(--gold);font-size:18px;min-width:18px}
+.tile.done{background:var(--goldbg);border-color:var(--gold)}
+.summary{margin:18px 2px 0;font-size:14px;color:var(--note);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.linkbtn{background:none;border:none;color:var(--note);text-decoration:underline;padding:0;font-size:14px}
+
+/* skill page */
+.topbar{display:flex;align-items:center;gap:12px;margin:16px 0 8px;flex-wrap:wrap}
+.back{background:#fff;border:1.5px solid var(--ninja);border-radius:6px;padding:4px 12px;font-size:15px}
+.skillhead{background:var(--ninja);color:#fff;border-radius:8px 8px 0 0;padding:8px 14px;font-weight:700;font-size:19px}
+.skillhead .tag{color:var(--gold);margin-right:12px}
+.skillbody{border:1.5px solid var(--ninja);border-top:none;border-radius:0 0 8px 8px;padding:12px 14px}
+.key{background:var(--goldbg);border:1px solid var(--gold);border-radius:6px;padding:8px 12px;margin:4px 0 10px}
+.watch{background:var(--warnbg);border:1px solid var(--warn);border-radius:6px;padding:8px 12px;margin:10px 0 4px}
+.watch b.w{color:var(--warn)}
+.exhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:6px}
+.exhead h3{margin:0;font-size:17px}
+.exgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.typeh{grid-column:1/-1;font-weight:700;margin-top:8px}
+.typeh span{font-weight:400}
+.ex{background:var(--exbg);border-radius:6px;padding:8px 12px}
+.ex .t{font-weight:700;font-size:15px;margin-bottom:4px}
+.steps{display:grid;grid-template-columns:auto auto 1fr;column-gap:2px;row-gap:5px;align-items:center}
+.steps .lhs{text-align:right}
+.steps .note{color:var(--note);font-size:14px;padding-left:12px}
+.steps .full{grid-column:1/-1}
+.steps .hidden{display:none}
+.nextstep{margin-top:8px;background:#fff;border:1px solid var(--ninja);border-radius:5px;padding:2px 10px;font-size:14px}
+.smallbtn{background:#fff;border:1px solid var(--note);border-radius:5px;padding:2px 10px;font-size:14px;color:var(--ninja)}
+
+/* practice */
+.practice{margin-top:18px;border:2px solid var(--gold);border-radius:10px;overflow:hidden}
+.phead{background:var(--gold);color:var(--ninja);font-weight:700;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.dots{display:flex;gap:5px;align-items:center;font-weight:400;font-size:14px}
+.dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--ninja);background:transparent}
+.dot.on{background:var(--ninja)}
+.pbody{padding:14px}
+.qbox{background:var(--exbg);border-radius:8px;padding:16px;text-align:center;margin-bottom:12px}
+.prompt{font-size:16px;color:#333;margin-bottom:6px}
+.qmath{font-size:28px}
+.arow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.arow label{font-weight:700}
+.arow input{flex:1;min-width:140px;font-size:22px;padding:8px 10px;border:2px solid var(--ninja);border-radius:6px;font-family:inherit}
+.arow input.half{flex:0 1 140px;min-width:80px}
+.check{background:var(--ninja);color:#fff;border:none;border-radius:6px;padding:10px 22px;font-weight:700}
+.keypad{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.keypad button{background:#fff;border:1px solid var(--line);border-radius:5px;min-width:40px;padding:4px 8px;font-size:17px}
+.preview{font-size:15px;color:var(--note);margin-top:8px;min-height:1.6em}
+.preview .m{color:var(--ninja);font-size:19px}
+.fmt{font-size:14px;color:var(--note);margin-top:2px}
+.fb{margin-top:10px;border-radius:6px;padding:0;font-weight:700}
+.fb.ok{background:var(--goodbg);color:var(--good);padding:8px 12px;border:1px solid var(--good)}
+.fb.no{background:var(--warnbg);color:var(--warn);padding:8px 12px;border:1px solid var(--warn)}
+.fb.near{background:var(--goldbg);color:#7a5f00;padding:8px 12px;border:1px solid var(--gold)}
+.fb .sm{font-weight:400;color:var(--ninja)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.actions button{background:#fff;border:1.5px solid var(--ninja);border-radius:6px;padding:6px 14px;font-size:15px}
+.actions button.primary{background:var(--ninja);color:#fff}
+.how{margin-top:12px}
+.how .ex{background:var(--goldbg)}
+.mastered{margin-top:10px;background:var(--ninja);color:var(--gold);border-radius:8px;padding:10px 14px;font-weight:700;text-align:center}
+
+@media (max-width:820px){
+  .cols{grid-template-columns:1fr}
+  .exgrid{grid-template-columns:1fr}
+  .banner .l2{font-size:32px}
+  .qmath{font-size:24px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="banner" id="home-link" title="Back to all skills">
+    <div><div class="l1">ALGEBRA</div><div class="l2">NINJAS</div></div>
+    <div class="r"><div class="r1">PRACTICE DOJO</div><div class="r2">Teach yourself the skills</div></div>
+  </div>
+  <div id="home"></div>
+  <div id="skill" hidden></div>
+</div>
+
+<script>
+"use strict";
+/* ================= helpers ================= */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const ri0=(a,b)=>{let v;do v=ri(a,b);while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const fn=v=>String(+(+v).toFixed(6));
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+function lin(terms){let s='';for(const [c,v] of terms){if(c===0)continue;const a=Math.abs(c);const t=v===''?fn(a):(a===1?v:fn(a)+v);s=s===''?(c<0?'-':'')+t:s+(c<0?'-':'+')+t}return s||'0'}
+const co=(c,v)=>lin([[c,v]]);
+const sg=n=>n<0?String(n):'+'+n;
+const par=n=>n<0?`(${n})`:String(n);
+const pw=(u,e)=>e===1?u:`${u}^${e}`;
+function simp(n){let k=1,s=n;for(let f=2;f*f<=s;f++){while(s%(f*f)===0){s/=f*f;k*=f}}return [k,s]}
+const surd=(c,s)=>s===1?fn(c):(c===1?'':fn(c))+'√'+s;
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const PAIRS=[['x','y'],['a','b'],['m','n'],['p','q'],['t','w'],['h','k']];
+const LET=['a','b','k','m','n','p','t','x','y'];
+const D={'>':'>','<':'<','G':'≥','L':'≤'};
+const FLIP={'>':'<','<':'>','G':'L','L':'G'};
+
+/* ================= maths renderer =================
+   ^x superscript, √x root, ~{a}{b} fraction, "text" plain text, {..} groups */
+function M(s){
+  s=String(s);let o='',i=0;
+  const take=()=>{
+    const c=s[i];
+    if(c==='{'||c==='('){const cl=c==='{'?'}':')';let d=1,j=i+1;while(j<s.length&&d){if(s[j]===c)d++;else if(s[j]===cl)d--;j++}const r=s.slice(i+1,j-1);i=j;return r}
+    if(c==='-'||/[0-9.]/.test(c||'')){let j=i+1;while(j<s.length&&/[0-9.]/.test(s[j]))j++;const r=s.slice(i,j);i=j;return r}
+    i++;return c||'';
+  };
+  while(i<s.length){
+    const c=s[i];
+    if(c==='^'){i++;o+='<sup>'+M(take())+'</sup>'}
+    else if(c==='√'){i++;o+='<span class="rt">√<span class="rad">'+M(take())+'</span></span>'}
+    else if(c==='~'){i++;const a=take(),b=take();o+='<span class="fr"><span>'+M(a)+'</span><span>'+M(b)+'</span></span>'}
+    else if(c==='"'){const j=s.indexOf('"',i+1);o+='<span class="tx">'+esc(s.slice(i+1,j))+'</span>';i=j+1}
+    else if(/[a-zA-Z]/.test(c)){o+='<i>'+c+'</i>';i++}
+    else if(c==='<'||c==='>'){let op=c;if(s[i+1]==='='){op=c==='<'?'≤':'≥';i++}o+='<span class="op">'+esc(op)+'</span>';i++}
+    else if('=≤≥'.includes(c)){o+='<span class="op">'+c+'</span>';i++}
+    else if('+-×÷*'.includes(c)){
+      const prev=s.slice(0,i).trimEnd().slice(-1);
+      const unary=(c==='-'||c==='+')&&(prev===''||'(=<>≤≥×÷{^,'.includes(prev));
+      const ch=c==='-'?'−':c==='*'?'×':c;
+      o+=unary?ch:'<span class="bo">'+ch+'</span>';i++;
+    }
+    else if(c===' '){i++}
+    else if(c===','){o+=',&ensp;';i++}
+    else{o+=esc(c);i++}
+  }
+  return o;
+}
+// text with $maths$ and **bold**
+function T(s){
+  s=String(s).replace(/\*\*(.+?)\*\*/g,'\u0001$1\u0002');
+  return s.split('$').map((p,k)=>k%2?'<span class="m">'+M(p)+'</span>':esc(p)).join('').replace(/\u0001/g,'<b>').replace(/\u0002/g,'</b>');
+}
+
+/* ================= answer parser ================= */
+function pre(s){
+  return String(s).toLowerCase().replace(/sqrt|root/g,'√').replace(/[−–—]/g,'-').replace(/[×·]/g,'*')
+    .replace(/÷/g,'/').replace(/²/g,'^2').replace(/³/g,'^3').replace(/\[/g,'(').replace(/\]/g,')').replace(/\s+/g,'');
+}
+function tokenize(s){
+  const t=[];let i=0;
+  while(i<s.length){
+    const c=s[i];
+    if(/[0-9.]/.test(c)){let j=i;while(j<s.length&&/[0-9.]/.test(s[j]))j++;const n=s.slice(i,j);if(!/^(\d+\.?\d*|\.\d+)$/.test(n))throw 0;t.push({k:'n',v:parseFloat(n)});i=j;continue}
+    if(/[a-z]/.test(c)){t.push({k:'v',v:c});i++;continue}
+    if('+-*/^()√'.includes(c)){t.push({k:c});i++;continue}
+    throw 0;
+  }
+  return t;
+}
+function parse(src){
+  const t=tokenize(src);let p=0;
+  const pk=()=>t[p]&&t[p].k;
+  function expr(){let a=term();while(pk()==='+'||pk()==='-'){const op=t[p++].k;a={t:'add',op,a,b:term()}}return a}
+  function term(){let a=unary();for(;;){const k=pk();if(k==='*'||k==='/'){p++;const b=unary();a={t:k==='*'?'mul':'div',a,b}}else if(k==='n'||k==='v'||k==='('||k==='√'){a={t:'mul',a,b:power()}}else break}return a}
+  function unary(){if(pk()==='-'){p++;return{t:'neg',a:unary()}}if(pk()==='+'){p++;return unary()}return power()}
+  function power(){const a=atom();if(pk()==='^'){p++;return{t:'pow',a,b:unary()}}return a}
+  function atom(){
+    const k=t[p++];if(!k)throw 0;
+    if(k.k==='n')return{t:'num',v:k.v};
+    if(k.k==='v')return{t:'var',v:k.v};
+    if(k.k==='('){const e=expr();if(pk()!==')')throw 0;p++;return{t:'par',a:e}}
+    if(k.k==='√')return{t:'sqrt',a:atom()};
+    throw 0;
+  }
+  if(!t.length)throw 0;
+  const r=expr();if(p<t.length)throw 0;return r;
+}
+function ev(n,e){switch(n.t){
+  case'num':return n.v;case'var':return e[n.v];
+  case'add':return n.op==='+'?ev(n.a,e)+ev(n.b,e):ev(n.a,e)-ev(n.b,e);
+  case'mul':return ev(n.a,e)*ev(n.b,e);case'div':return ev(n.a,e)/ev(n.b,e);
+  case'neg':return -ev(n.a,e);case'pow':return Math.pow(ev(n.a,e),ev(n.b,e));
+  case'sqrt':return Math.sqrt(ev(n.a,e));case'par':return ev(n.a,e)}}
+function varsOf(n,s=new Set()){if(n.t==='var')s.add(n.v);if(n.a)varsOf(n.a,s);if(n.b)varsOf(n.b,s);return s}
+function has(n,t){return n.t===t||(n.a&&has(n.a,t))||(n.b&&has(n.b,t))}
+function strip(n){while(n.t==='par')n=n.a;return n}
+function analyse(n){
+  const info={tokens:0,bracket:false,badSurd:false,surdBottom:false};
+  (function w(n,ctx){
+    switch(n.t){
+      case'num':case'var':info.tokens++;break;
+      case'par':if(ctx!=='sqrt'&&ctx!=='exp'&&strip(n).t==='add')info.bracket=true;w(n.a,'');break;
+      case'sqrt':{if(varsOf(n.a).size)info.badSurd=true;else{const v=ev(n.a,{});if(!Number.isInteger(v)||v<2||simp(v)[0]>1)info.badSurd=true}w(n.a,'sqrt');break}
+      case'div':if(has(n.b,'sqrt'))info.surdBottom=true;w(n.a,'');w(n.b,'');break;
+      case'pow':w(n.a,'');w(n.b,'exp');break;
+      default:if(n.a)w(n.a,'');if(n.b)w(n.b,'');
+    }
+  })(n,'');
+  return info;
+}
+function points(vs,k=6){const r=[];for(let i=0;i<k;i++){const e={};vs.forEach(v=>e[v]=0.6+Math.random()*2.7);r.push(e)}return r}
+const close=(x,y)=>isFinite(x)&&isFinite(y)&&Math.abs(x-y)<=1e-7*Math.max(1,Math.abs(y));
+function same(a,b,vs){return points(vs).every(e=>close(ev(a,e),ev(b,e)))}
+function tryParse(s){try{return parse(pre(s))}catch(e){return null}}
+function constVal(s){const p=tryParse(s);if(!p||varsOf(p).size)return NaN;return ev(p,{})}
+const UNREADABLE={ok:false,cls:'no',msg:"I can't read that answer. Check your brackets and symbols."};
+const WRONG={ok:false,cls:'no',msg:'Not quite. Have another go.'};
+const near=m=>({ok:false,cls:'near',msg:m});
+
+function checkExpr(input,q){
+  const p=tryParse(input);if(!p)return UNREADABLE;
+  const e=parse(pre(q.ans));const ev_=varsOf(e);
+  for(const v of varsOf(p))if(!ev_.has(v))return{ok:false,cls:'no',msg:`Your answer has a letter ${v} in it that shouldn't be there.`};
+  if(!same(p,e,[...ev_]))return WRONG;
+  const a=analyse(p),b=analyse(e);
+  if(a.bracket&&!b.bracket)return near('That is equal to the answer, but multiply out the brackets and simplify.');
+  if(a.surdBottom)return near('That is equal to the answer, but there is still a surd on the bottom. Rationalise it.');
+  if(a.badSurd&&!b.badSurd)return near('That is equal to the answer, but the surd can be simplified further.');
+  if(a.tokens>b.tokens)return near("That is equal to the answer, but it isn't fully simplified yet.");
+  return{ok:true};
+}
+function factorList(n,out=[]){
+  if(n.t==='par'&&strip(n).t!=='add')return factorList(n.a,out);
+  if(n.t==='mul'){factorList(n.a,out);factorList(n.b,out);return out}
+  if(n.t==='neg'){out.push({t:'num',v:-1});return factorList(n.a,out)}
+  if(n.t==='pow'&&strip(n.a).t==='add'&&n.b.t==='num'&&Number.isInteger(n.b.v)&&n.b.v>0&&n.b.v<5){for(let i=0;i<n.b.v;i++)out.push(n.a);return out}
+  out.push(n);return out;
+}
+function checkFactor(input,q){
+  const p=tryParse(input);if(!p)return UNREADABLE;
+  const e=parse(pre(q.ans));const vs=[...varsOf(e)];
+  for(const v of varsOf(p))if(!vs.includes(v))return{ok:false,cls:'no',msg:`Your answer has a letter ${v} in it that shouldn't be there.`};
+  if(!same(p,e,vs))return WRONG;
+  if(has(p,'div'))return near('That is equal, but write it without fractions.');
+  const ps=factorList(p).filter(f=>strip(f).t==='add'), es=factorList(e).filter(f=>strip(f).t==='add');
+  if(!ps.length||p.t==='add')return near('That is equal, but it needs to be factorised: put it into brackets.');
+  const used=new Set();
+  for(const f of ps){
+    const pts=points(vs);let found=false;
+    for(let j=0;j<es.length;j++){
+      if(used.has(j))continue;
+      const r=pts.map(x=>ev(f,x)/ev(es[j],x));
+      if(r.every(v=>close(Math.abs(v),1)&&close(v,r[0]))){used.add(j);found=true;break}
+    }
+    if(!found)return near("That is equal, but it isn't fully factorised. Is there a bigger common factor?");
+  }
+  if(used.size<es.length)return near("That is equal, but it isn't fully factorised yet.");
+  return{ok:true};
+}
+function sideValue(input,v){
+  const s=pre(input).split('=');
+  if(s.length===1)return s[0];
+  if(s.length===2){if(s[0]===v)return s[1];if(s[1]===v)return s[0]}
+  return null;
+}
+function checkEq(input,q){
+  const side=sideValue(input,q.v);if(side===null)return{ok:false,cls:'no',msg:`Write your answer as ${q.v} = … (or just the number).`};
+  const n=constVal(side);if(isNaN(n))return{ok:false,cls:'no',msg:`Give the value of ${q.v}, e.g. ${q.v} = 7.`};
+  return close(n,q.ans)?{ok:true}:WRONG;
+}
+function checkNum(input,q){
+  const s=pre(input).replace(/^[a-z]=/,'');
+  const n=constVal(s);if(isNaN(n))return{ok:false,cls:'no',msg:'Type a number for your answer.'};
+  return close(n,q.ans)?{ok:true}:WRONG;
+}
+function checkIneq(input,q){
+  const s=pre(input).replace(/<=|=<|≤/g,'L').replace(/>=|=>|≥/g,'G');
+  const m=s.match(/^([^<>LG]*)([<>LG])([^<>LG]*)$/);
+  if(!m)return{ok:false,cls:'no',msg:'Write your answer as an inequality, e.g. x > 5 or x ≤ 4.'};
+  let [,l,sn,r]=m,val;
+  if(l==='x')val=r;else if(r==='x'){val=l;sn=FLIP[sn]}else return{ok:false,cls:'no',msg:'Get x on its own, e.g. x > 5.'};
+  const n=constVal(val);if(isNaN(n))return{ok:false,cls:'no',msg:'Get x on its own, e.g. x > 5.'};
+  if(!close(n,q.ans.v))return WRONG;
+  if(sn!==q.ans.s)return near('The number is right, but check the inequality sign.');
+  return{ok:true};
+}
+function checkSubject(input,q){
+  const side=sideValue(input,q.v);if(side===null)return{ok:false,cls:'no',msg:`Write your answer as ${q.v} = …`};
+  let p;try{p=parse(side)}catch(e){return UNREADABLE}
+  const e=parse(pre(q.ans));const vs=[...varsOf(e)];
+  if(varsOf(p).has(q.v))return{ok:false,cls:'no',msg:`${q.v} should only appear on one side.`};
+  for(const v of varsOf(p))if(!vs.includes(v))return{ok:false,cls:'no',msg:`Your answer has a letter ${v} in it that shouldn't be there.`};
+  return same(p,e,vs)?{ok:true}:{ok:false,cls:'no',msg:'Not quite. Remember to put brackets round the top of the fraction, e.g. (y-7)/3.'};
+}
+function checkMC(inputs,q){
+  const m=constVal(inputs[0]),c=constVal(inputs[1]);
+  if(isNaN(m)||isNaN(c))return{ok:false,cls:'no',msg:'Type a number in both boxes.'};
+  const okm=close(m,q.ans.m),okc=close(c,q.ans.c);
+  if(okm&&okc)return{ok:true};
+  if(okm)return near('The gradient is right, but check the y-intercept.');
+  if(okc)return near('The y-intercept is right, but check the gradient.');
+  return WRONG;
+}
+const CHECK={expr:checkExpr,factor:checkFactor,eq:checkEq,num:checkNum,ineq:checkIneq,subject:checkSubject,mc:checkMC};
+
+/* ================= skills =================
+   learn.ex items: {t:title, l:[[maths, note], ...]} or {h:'type heading'}
+   gen() returns {p:prompt (T text), q:maths, kind, ans, ansD, steps:[[maths,note]], fmt?, v?} */
+const FMT_POW='Type powers with ^, e.g. x^7 for $x^7$.';
+const FMT_SURD='Use the √ button (or type sqrt), e.g. 5√2 for $5√2$.';
+const FMT_EQ='Type x = 7 (or just 7).';
+
+const SKILLS=[
+/* ---------- MENTAL ALGEBRA ---------- */
+{id:'A1',name:'Collect like terms',learn:{
+  key:'Only collect terms with the **same letter**. The sign in front of a term belongs to it, so it moves with it.',
+  ex:[{t:'Example 1',l:[['7x-3y-2x+5y',''],['=7x-2x-3y+5y','group like terms'],['=5x+2y','']]},
+      {t:'Example 2',l:[['5p-2q-8p+7q',''],['=5p-8p-2q+7q','group like terms'],['=-3p+5q','or $5q-3p$']]}],
+  watch:'$-2x$ means take away $2x$: $7x-2x=5x$, **not** $9x$. A letter on its own means one of it: $x=1x$.'},
+ fmt:'Type e.g. 5x+2y.',
+ gen(){const [u,w]=pick(PAIRS);let a,b,c,d;do{a=ri(3,9);b=ri0(-7,7);c=-ri(2,8);d=ri0(-7,7)}while(a+c===0||b+d===0);
+  const ans=lin([[a+c,u],[b+d,w]]);
+  return{q:lin([[a,u],[b,w],[c,u],[d,w]]),kind:'expr',ans,steps:[[`${lin([[a,u],[c,u]])}=${co(a+c,u)}`,`collect the $${u}$ terms`],[`${lin([[b,w],[d,w]])}=${co(b+d,w)}`,`collect the $${w}$ terms`],[`=${ans}`,'answer']]}}},
+{id:'A2',name:'Multiply terms with decimals',learn:{
+  key:'**Multiply the numbers**, then **multiply the letters** by writing them side by side: $x×y=xy$.',
+  ex:[{t:'Example 1',l:[['0.5x×3y=(0.5×3)×xy',''],['=1.5xy','half of 3 is 1.5']]},
+      {t:'Example 2',l:[['0.4a×5b=(0.4×5)×ab',''],['=2ab','$4×5=20$, so $0.4×5=2$']]}],
+  watch:'Do $4×5=20$ first, then put the decimal point back: $0.4×5=2.0=2$.'},
+ fmt:'Type e.g. 1.5xy.',
+ gen(){const [u,w]=pick(PAIRS);const p=ri(2,9),n=ri(2,9),d=p/10,prod=p*n/10;
+  const q=Math.random()<.5?`${fn(d)}${u}×${n}${w}`:`${n}${u}×${fn(d)}${w}`;
+  const ans=co(prod,u+w);
+  return{q,kind:'expr',ans,steps:[[`${fn(d)}×${n}=${fn(prod)}`,`multiply the numbers: $${p}×${n}=${p*n}$, then one decimal place`],[`${u}×${w}=${u}${w}`,'multiply the letters'],[`=${ans}`,'']]}}},
+{id:'A3',name:'Multiply by multiples of 10',learn:{
+  key:'Multiply the **non-zero digits** first, then **put the zeros back**.',
+  ex:[{t:'Example 1',l:[['20a×30b',''],['2×3=6','multiply the digits'],['20×30=600','put the two zeros back'],['20a×30b=600ab','']]},
+      {t:'Example 2',l:[['300x×0.2y',''],['3×2=6','multiply the digits'],['300×0.2=60','two zeros, one decimal place: one zero left'],['300x×0.2y=60xy','']]}],
+  watch:'Count the zeros carefully: $50×40=2000$ because $5×4=20$ already has a zero.'},
+ fmt:'Type e.g. 600ab.',
+ gen(){const [u,w]=pick(PAIRS);const d1=ri(2,9),e1=ri(1,2),a=d1*10**e1;
+  if(Math.random()<.3){const dd=ri(2,9),b=dd/10,prod=a*b,ans=co(prod,u+w);
+   return{q:`${a}${u}×${fn(b)}${w}`,kind:'expr',ans,steps:[[`${d1}×${dd}=${d1*dd}`,'multiply the digits first'],[`${a}×${fn(b)}=${fn(prod)}`,`$${a}$ has ${e1} zero${e1>1?'s':''} and $${fn(b)}$ has 1 decimal place`],[`=${ans}`,'letters go side by side']]}}
+  const d2=ri(2,9),e2=e1===2?1:ri(1,2),b=d2*10**e2,prod=a*b,ans=co(prod,u+w);
+  return{q:`${a}${u}×${b}${w}`,kind:'expr',ans,steps:[[`${d1}×${d2}=${d1*d2}`,'multiply the digits first'],[`${a}×${b}=${prod}`,`put the ${e1+e2} zeros back`],[`=${ans}`,'letters go side by side']]}}},
+{id:'A4',name:'Decimal × decimal, same letter',learn:{
+  key:'Multiply the digits, then **count the decimal places** in the question. The answer has the same number. The same letter twice is squared: $m×m=m^2$.',
+  ex:[{t:'Example 1',l:[['0.2m×0.4m',''],['2×4=8','multiply the digits'],['0.2×0.4=0.08','two decimal places'],['=0.08m^2','']]},
+      {t:'Example 2',l:[['0.7h×0.2h',''],['7×2=14',''],['0.7×0.2=0.14','two decimal places'],['=0.14h^2','']]}],
+  watch:'$0.2×0.4=0.08$, **not** $0.8$. There are two decimal places in the question.'},
+ fmt:'Type x^2 for $x^2$, e.g. 0.08m^2.',
+ gen(){const u=pick(LET),p=ri(2,9),q=ri(2,9),prod=p*q/100,ans=co(prod,u+'^2');
+  return{q:`${fn(p/10)}${u}×${fn(q/10)}${u}`,kind:'expr',ans,steps:[[`${p}×${q}=${p*q}`,'multiply the digits'],[`${fn(p/10)}×${fn(q/10)}=${fn(prod)}`,'two decimal places in the question, so two in the answer'],[`${u}×${u}=${u}^2`,''],[`=${ans}`,'']]}}},
+{id:'A5',name:'Divide a term by a number',learn:{
+  key:'Divide the number; the letter stays. To **divide by a decimal**, multiply both numbers by 10 first so you are dividing by a whole number.',
+  ex:[{t:'Example 1',l:[['4.8k÷6',''],['48÷6=8','ignore the decimal point first'],['4.8÷6=0.8','put it back'],['=0.8k','']]},
+      {t:'Example 2',l:[['2.4m÷0.3',''],['=24÷3','multiply both numbers by 10'],['=8m','']]}],
+  watch:'Dividing by a number less than 1 makes the answer **bigger**: $360t÷0.4=900t$.'},
+ fmt:'Type e.g. 0.8k.',
+ gen(){const u=pick(LET);
+  if(Math.random()<.5){const a=ri(1,9),n=ri(2,9),ans=co(a/10,u);
+   return{q:`${co(a*n/10,u)}÷${n}`,kind:'expr',ans,steps:[[`${a*n}÷${n}=${a}`,'ignore the decimal point first'],[`${fn(a*n/10)}÷${n}=${fn(a/10)}`,'put the decimal point back'],[`=${ans}`,'']]}}
+  const k=ri(2,9),d=ri(2,9),top=k*d/10,ans=co(k,u);
+  return{q:`${co(top,u)}÷${fn(d/10)}`,kind:'expr',ans,steps:[[`${fn(top)}÷${fn(d/10)}=${k*d}÷${d}`,'multiply both numbers by 10'],[`=${k}`,''],[`=${ans}`,'']]}}},
+{id:'A6',name:'Divide terms',learn:{
+  key:'**Divide the numbers**, then **cancel** any letter that is on the top and the bottom.',
+  ex:[{t:'Example 1',l:[['36pq÷4q',''],['36÷4=9','divide the numbers'],['pq÷q=p','the $q$’s cancel'],['=9p','']]},
+      {t:'Example 2',l:[['15a^2b÷5a',''],['15÷5=3',''],['a^2b÷a=ab','$a^2÷a=a$'],['=3ab','']]}],
+  watch:'When every letter on the bottom cancels, just the top letters are left: $28m^2n÷7mn=4m$.'},
+ fmt:'Type e.g. 9p.',
+ gen(){const [u,w]=pick(PAIRS),k=ri(2,9),n=ri(2,9),t=ri(1,3);
+  if(t===1)return{q:`${k*n}${u}${w}÷${n}${w}`,kind:'expr',ans:`${k}${u}`,steps:[[`${k*n}÷${n}=${k}`,'divide the numbers'],[`${u}${w}÷${w}=${u}`,`the $${w}$’s cancel`],[`=${k}${u}`,'']]};
+  if(t===2)return{q:`${k*n}${u}^2${w}÷${n}${u}`,kind:'expr',ans:`${k}${u}${w}`,steps:[[`${k*n}÷${n}=${k}`,'divide the numbers'],[`${u}^2${w}÷${u}=${u}${w}`,`$${u}^2÷${u}=${u}$`],[`=${k}${u}${w}`,'']]};
+  return{q:`${k*n}${u}^2${w}÷${n}${u}${w}`,kind:'expr',ans:`${k}${u}`,steps:[[`${k*n}÷${n}=${k}`,'divide the numbers'],[`${u}^2${w}÷${u}${w}=${u}`,`one $${u}$ and the $${w}$ cancel`],[`=${k}${u}`,'']]}}},
+{id:'A7',name:'Negatives with terms',learn:{
+  key:'**Same signs** give a **positive** answer. **Different signs** give a **negative** answer. This works for × and ÷.',
+  ex:[{t:'Example 1',l:[['-3x×(-5y)',''],['3×5=15','multiply the numbers'],['=15xy','negative × negative = positive']]},
+      {t:'Example 2',l:[['-20k÷4',''],['20÷4=5','divide the numbers'],['=-5k','negative ÷ positive = negative']]}],
+  watch:'The same letter twice is squared: $-6x×(-7x)=42x^2$.'},
+ fmt:'Type e.g. -15xy (use ^2 for squared).',
+ gen(){const [u,w0]=pick(PAIRS),[sa,sb]=pick([[-1,-1],[-1,1],[1,-1]]);
+  if(Math.random()<.6){const a=ri(2,9),b=ri(2,9),sameL=Math.random()<.3,w=sameL?u:w0,prod=sa*sb*a*b;
+   const L=sameL?u+'^2':u+w,ans=co(prod,L);
+   return{q:`${sa<0?'-':''}${a}${u}×${sb<0?`(-${b}${w})`:b+w}`,kind:'expr',ans,steps:[[`${a}×${b}=${a*b}`,'multiply the numbers'],[`=${ans}`,(prod>0?'negative × negative = positive':'negative × positive = negative')+(sameL?`, and $${u}×${u}=${u}^2$`:'')]]}}
+  const k=ri(2,9),n=ri(2,9),ans=co(sa*sb*k,u);
+  return{q:`${co(sa*k*n,u)}÷${sb<0?`(-${n})`:n}`,kind:'expr',ans,steps:[[`${k*n}÷${n}=${k}`,'divide the numbers'],[`=${ans}`,sa*sb>0?'negative ÷ negative = positive':'different signs give a negative']]}}},
+{id:'A8',name:'Square a term',learn:{
+  key:'Squaring means multiplying by itself, so **square the number and the letter**: $(20h)^2=20h×20h$.',
+  ex:[{t:'Example 1',l:[['(20h)^2=20h×20h',''],['=400h^2','$20×20=400$']]},
+      {t:'Example 2',l:[['(0.3k)^2=0.3k×0.3k',''],['=0.09k^2','$3×3=9$, two decimal places']]}],
+  watch:'$(0.3)^2=0.09$, **not** $0.9$. Count the decimal places.'},
+ fmt:'Type x^2 for $x^2$, e.g. 400h^2.',
+ gen(){const u=pick(LET),d=ri(2,9),v=Math.random()<.5?d*10:d/10,ans=co(v*v,u+'^2');
+  return{q:`(${fn(v)}${u})^2`,kind:'expr',ans,steps:[[`${fn(v)}×${fn(v)}=${fn(v*v)}`,v<1?'two decimal places':'square the number'],[`${u}×${u}=${u}^2`,'square the letter'],[`=${ans}`,'']]}}},
+{id:'A9',name:'Square root of a term',learn:{
+  key:'**Square-root the number and the letter**: $√{x^2}=x$. Ask yourself: what times itself gives this?',
+  ex:[{t:'Example 1',l:[['√{2500x^2}',''],['√{2500}=50','$50×50=2500$'],['=50x','']]},
+      {t:'Example 2',l:[['√{0.25y^2}',''],['√{0.25}=0.5','$0.5×0.5=0.25$'],['=0.5y','']]}],
+  watch:'Check by squaring your answer: $(50x)^2=2500x^2$ ✓. Also, $√{0.16}=0.4$, not $0.04$.'},
+ fmt:'Type e.g. 50x.',
+ gen(){const u=pick(LET),d=ri(2,9),v=Math.random()<.5?d*10:d/10,ans=co(v,u);
+  return{q:`√{${fn(v*v)}${u}^2}`,kind:'expr',ans,steps:[[`√{${fn(v*v)}}=${fn(v)}`,`because $${fn(v)}×${fn(v)}=${fn(v*v)}$`],[`√{${u}^2}=${u}`,''],[`=${ans}`,'']]}}},
+{id:'A10',name:'Find the missing term',learn:{
+  key:'To find the missing term, **divide** the answer by the term you are given. Divide the numbers, then cancel the letters.',
+  ex:[{t:'Example 1',l:[['□×0.4t=2tw',''],['2÷0.4=5','$20÷4=5$'],['tw÷t=w',''],['□=5w','']]},
+      {t:'Example 2',l:[['□×20a=600ab',''],['600÷20=30',''],['ab÷a=b',''],['□=30b','']]}],
+  watch:'Check by multiplying back: $5w×0.4t=2tw$ ✓.'},
+ fmt:'Type the missing term, e.g. 5w.',
+ gen(){const [u,w]=pick(PAIRS);let c,k;
+  if(Math.random()<.6){c=ri(2,9)/10;k=ri(2,9)}else{c=ri(2,9)*10;k=ri(2,9)*10}
+  const prod=c*k;
+  return{p:'Find the missing term',q:`□×${fn(c)}${u}=${co(prod,u+w)}`,kind:'expr',ans:`${k}${w}`,steps:[[`□=${co(prod,u+w)}÷${fn(c)}${u}`,'divide to find the missing term'],[`${fn(prod)}÷${fn(c)}=${k}`,''],[`${u}${w}÷${u}=${w}`,''],[`□=${k}${w}`,'']]}}},
+
+/* ---------- POWERS & SURDS ---------- */
+{id:'B1',name:'Multiplying powers',learn:{
+  key:'When you multiply powers of the **same letter**, **add** the powers: $a^m×a^n=a^{m+n}$. Why? $a^3×a^2=(a×a×a)×(a×a)=a^5$.',
+  ex:[{t:'Example 1',l:[['x^4×x^3=x^{4+3}',''],['=x^7','']]},{t:'Example 2',l:[['n×n^5=n^1×n^5','a letter on its own has power 1'],['=n^6','']]}],
+  watch:'Add the powers, don’t multiply them: $x^4×x^3=x^7$, **not** $x^{12}$.'},
+ fmt:FMT_POW,
+ gen(){const u=pick(LET),m=Math.random()<.15?1:ri(2,9),n=ri(2,9),ans=pw(u,m+n);
+  return{q:`${pw(u,m)}×${pw(u,n)}`,kind:'expr',ans,steps:[[`${pw(u,m)}×${pw(u,n)}=${u}^{${m}+${n}}`,'add the powers'],[`=${ans}`,'']]}}},
+{id:'B2',name:'Dividing powers',learn:{
+  key:'When you divide powers of the **same letter**, **subtract** the powers: $a^m÷a^n=a^{m-n}$. Why? $a^5÷a^2=~{a×a×a×a×a}{a×a}$; two $a$’s cancel, leaving $a^3$.',
+  ex:[{t:'Example 1',l:[['x^8÷x^2=x^{8-2}',''],['=x^6','']]},{t:'Example 2',l:[['t^6÷t=t^6÷t^1',''],['=t^5','']]}],
+  watch:'Subtract the powers, don’t divide them: $x^8÷x^2=x^6$, **not** $x^4$.'},
+ fmt:FMT_POW,
+ gen(){const u=pick(LET),n=Math.random()<.2?1:ri(2,6),m=n+ri(1,8),ans=pw(u,m-n);
+  return{q:`${pw(u,m)}÷${pw(u,n)}`,kind:'expr',ans,steps:[[`${pw(u,m)}÷${pw(u,n)}=${u}^{${m}-${n}}`,'subtract the powers'],[`=${ans}`,m-n===1?'power 1 is just the letter':'']]}}},
+{id:'B3',name:'Power of a power',learn:{
+  key:'When a power is raised to another power, **multiply** the powers: $(a^m)^n=a^{m×n}$. Why? $(a^2)^3=a^2×a^2×a^2=a^6$.',
+  ex:[{t:'Example 1',l:[['(x^4)^2=x^{4×2}',''],['=x^8','']]},{t:'Example 2',l:[['(y^5)^3=y^{5×3}',''],['=y^{15}','']]}],
+  watch:'Here you multiply, not add: $(x^4)^2=x^8$, **not** $x^6$.'},
+ fmt:FMT_POW,
+ gen(){const u=pick(LET),m=ri(2,7),n=ri(2,5),ans=pw(u,m*n);
+  return{q:`(${pw(u,m)})^${n}`,kind:'expr',ans,steps:[[`(${pw(u,m)})^${n}=${u}^{${m}×${n}}`,'multiply the powers'],[`=${ans}`,'']]}}},
+{id:'B4',name:'Multiplying with numbers in front',learn:{
+  key:'Deal with the numbers and the letters separately. **Multiply the numbers**, then **add the powers**.',
+  ex:[{t:'Example 1',l:[['4x^3×2x^5=(4×2)×x^{3+5}',''],['=8x^8','']]},{t:'Example 2',l:[['6a^2×5a=(6×5)×a^{2+1}',''],['=30a^3','']]}],
+  watch:'Multiply the numbers, don’t add them: $4x^3×2x^5=8x^8$, **not** $6x^8$.'},
+ fmt:FMT_POW,
+ gen(){const u=pick(LET),c1=ri(2,9),c2=ri(2,9),m=ri(1,7),n=ri(2,7),ans=`${c1*c2}${pw(u,m+n)}`;
+  return{q:`${c1}${pw(u,m)}×${c2}${pw(u,n)}`,kind:'expr',ans,steps:[[`(${c1}×${c2})×${u}^{${m}+${n}}`,'multiply the numbers, add the powers'],[`=${ans}`,'']]}}},
+{id:'B5',name:'Dividing with numbers in front',learn:{
+  key:'**Divide the numbers**, then **subtract the powers**.',
+  ex:[{t:'Example 1',l:[['15x^6÷3x^2=(15÷3)×x^{6-2}',''],['=5x^4','']]},{t:'Example 2',l:[['~{24y^5}{6y}=(24÷6)×y^{5-1}',''],['=4y^4','']]}],
+  watch:'If the powers are the same, the letters cancel completely: $12x^5÷4x^5=3$ (no $x$ left).'},
+ fmt:FMT_POW,
+ gen(){const u=pick(LET),c=ri(2,9),k=ri(2,9),n=ri(1,6),m=Math.random()<.15?n:n+ri(1,6);
+  const ans=m===n?`${k}`:`${k}${pw(u,m-n)}`,top=`${c*k}${pw(u,m)}`,bot=`${c}${pw(u,n)}`;
+  return{q:Math.random()<.35?`~{${top}}{${bot}}`:`${top}÷${bot}`,kind:'expr',ans,steps:[[`(${c*k}÷${c})×${u}^{${m}-${n}}`,'divide the numbers, subtract the powers'],[`=${ans}`,m===n?'the letters cancel completely':'']]}}},
+{id:'B6',name:'Squaring a bracket',learn:{
+  key:'Squaring means multiplying by itself, so **everything** inside the bracket gets squared: **square the number** and **double the power**. Negative × negative = positive.',
+  ex:[{t:'Example 1',l:[['(3x^4)^2=3^2×x^{4×2}',''],['=9x^8','']]},{t:'Example 2',l:[['(-5y^3)^2=(-5)^2×y^{3×2}',''],['=25y^6','']]}],
+  watch:'Don’t forget to square the number too: $(3x^4)^2=9x^8$, **not** $3x^8$.'},
+ fmt:FMT_POW,
+ gen(){const u=pick(LET),c=ri(2,7)*(Math.random()<.3?-1:1),m=ri(1,6),ans=`${c*c}${pw(u,2*m)}`;
+  return{q:`(${c}${pw(u,m)})^2`,kind:'expr',ans,steps:[[`(${c}${pw(u,m)})^2=${par(c)}^2×${u}^{${m}×2}`,'square the number, double the power'],[`=${ans}`,'']]}}},
+{id:'B7',name:'Simplifying a surd',learn:{
+  key:'Split the number into a **square number** × something else, using $√{a×b}=√a×√b$. Then square-root the square number. Square numbers to look for: 4, 9, 16, 25, 36, 49, 64, 81, 100.',
+  ex:[{t:'Example 1',l:[['√{18}=√{9×2}',''],['=√9×√2',''],['=3√2','']]},{t:'Example 2',l:[['√{80}=√{16×5}',''],['=√{16}×√5',''],['=4√5','']]}],
+  watch:'Use the **biggest** square number you can. $√{80}=√{4×20}=2√{20}$ isn’t finished, because $√{20}$ simplifies again.'},
+ fmt:FMT_SURD,
+ gen(){let s,k;do{s=pick([2,3,5,6,7,10,11]);k=ri(2,10)}while(k*k*s>300);const ans=`${k}√${s}`;
+  return{p:'Simplify',q:`√{${k*k*s}}`,kind:'expr',ans,steps:[[`√{${k*k*s}}=√{${k*k}×${s}}`,`$${k*k}$ is the biggest square number that goes in`],[`=√{${k*k}}×√${s}`,''],[`=${ans}`,'']]}}},
+{id:'B8',name:'Multiplying surds',learn:{
+  key:'$√a×√b=√{a×b}$. Numbers in front multiply with numbers in front. Simplify at the end. Useful fact: $√5×√5=5$ (a surd times itself is the number inside).',
+  ex:[{t:'Example 1',l:[['√2×√8=√{16}',''],['=4','']]},{t:'Example 2',l:[['4√3×2√5=(4×2)×√{3×5}',''],['=8√{15}','']]}],
+  watch:'Always check whether your answer simplifies: $√6×√3=√{18}=3√2$.'},
+ fmt:FMT_SURD,
+ gen(){const L=[2,3,5,6,7,8,10,12,15,18,20,27];const a=pick([1,1,1,2,3,4]),b=pick([1,1,2,3,5]),p=pick(L),q=pick(L);
+  const C=a*b,R=p*q,[k,s]=simp(R),ans=surd(C*k,s),Cs=C>1?String(C):'';
+  const steps=[[`${a>1?a:''}√${p}×${b>1?b:''}√${q}=${C>1?`(${a}×${b})×`:''}√{${p}×${q}}`,C>1?'multiply the numbers in front, multiply the numbers inside':'multiply the numbers inside'],[`=${Cs}√{${R}}`,'']];
+  if(k>1)steps.push(s===1?[`=${C>1?C+'×':''}${k}`,`$√{${R}}=${k}$`]:[`=${C>1?C+'×':''}${k}√${s}`,`$√{${R}}=√{${k*k}×${s}}=${k}√${s}$`]);
+  if(k>1&&C>1)steps.push([`=${ans}`,'']);
+  return{q:`${a>1?a:''}√${p}×${b>1?b:''}√${q}`,kind:'expr',ans,steps}}},
+{id:'B9',name:'Adding and subtracting surds',learn:{
+  key:'Surds work like letters: you can only add **the same surd**. $2√3+5√3=7√3$, just like $2x+5x=7x$. If they don’t match, **simplify each surd first** and see if they do.',
+  ex:[{t:'Example 1',l:[['4√5+√5-2√5=(4+1-2)√5',''],['=3√5','']]},{t:'Example 2',l:[['√{12}+√{75}=√{4×3}+√{25×3}',''],['=2√3+5√3',''],['=7√3','']]}],
+  watch:'You can’t just add the numbers inside: $√2+√3$ is **not** $√5$.'},
+ fmt:FMT_SURD,
+ gen(){if(Math.random()<.4){const s=pick([2,3,5,6,7,10,11]);let cs;do{cs=[ri(2,7),ri0(-6,6)];if(Math.random()<.5)cs.push(ri0(-5,5))}while(cs.reduce((a,b)=>a+b)<=0);
+   const sum=cs.reduce((a,b)=>a+b),r='√'+s,ans=co(sum,r);
+   return{q:lin(cs.map(c=>[c,r])),kind:'expr',ans,steps:[[`${lin(cs.map(c=>[c,r]))}=(${cs[0]}${cs.slice(1).map(sg).join('')})√${s}`,'collect them like letters'],[`=${ans}`,'']]}}
+  let s,p,q;do{s=pick([2,3,5,6,7]);p=ri(2,6);q=ri(2,6)}while(p===q||p*p*s>200||q*q*s>200);
+  const op=p>q&&Math.random()<.5?'-':'+',res=op==='+'?p+q:p-q,ans=co(res,'√'+s);
+  return{q:`√{${p*p*s}}${op}√{${q*q*s}}`,kind:'expr',ans,steps:[[`√{${p*p*s}}${op}√{${q*q*s}}=√{${p*p}×${s}}${op}√{${q*q}×${s}}`,'simplify each surd first'],[`=${p}√${s}${op}${q}√${s}`,''],[`=${ans}`,'']]}}},
+{id:'B10',name:'Rationalising the denominator',learn:{
+  key:'Mathematicians don’t leave a surd on the bottom of a fraction. To get rid of it, **multiply the top and bottom by that surd**. This works because $√3×√3=3$. Then simplify if you can.',
+  ex:[{t:'Example 1',l:[['~{4}{√2}=~{4×√2}{√2×√2}',''],['=~{4√2}{2}',''],['=2√2','']]},{t:'Example 2',l:[['~{9}{√3}=~{9×√3}{√3×√3}',''],['=~{9√3}{3}',''],['=3√3','']]}],
+  watch:'Multiply the top **and** the bottom, or you change the value of the fraction. Sometimes it won’t simplify, and that’s fine: $~{5}{√7}=~{5√7}{7}$.'},
+ fmt:'Type fractions with /, e.g. 2√7/7 for $~{2√7}{7}$.',
+ gen(){const b=pick([2,3,5,6,7,10]);let a;if(Math.random()<.65)a=b*ri(2,6);else do{a=ri(1,9)}while(a%b===0);
+  const g=gcd(a,b),nf=a/g,df=b/g,ns=nf===1?'':nf,as=a===1?'':a;
+  const ans=df===1?`${ns}√${b}`:`${ns}√${b}/${df}`,ansD=df===1?`${ns}√${b}`:`~{${ns}√${b}}{${df}}`;
+  const steps=[[`~{${a}}{√${b}}=~{${a}×√${b}}{√${b}×√${b}}`,`multiply the top and bottom by $√${b}$`],[`=~{${as}√${b}}{${b}}`,'']];
+  if(g>1)steps.push([`=${ansD}`,g===b?`$${a}÷${b}=${nf}$`:'simplify the fraction']);
+  return{p:'Rationalise the denominator',q:`~{${a}}{√${b}}`,kind:'expr',ans,ansD,steps}}},
+
+/* ---------- KEY SKILLS ---------- */
+{id:'C1',name:'Two-step equations',learn:{
+  key:'Get $x$ on its own by **undoing** what’s been done to it. Undo the + or − first, then the ×. Whatever you do to one side, do to the other.',
+  ex:[{t:'Example 1',l:[['3x+5=26',''],['3x=21','take 5 from both sides'],['x=7','divide both sides by 3']]},{t:'Example 2',l:[['4x+11=3',''],['4x=-8','take 11 from both sides'],['x=-2','divide both sides by 4']]}],
+  watch:'Check your answer by putting it back in: $3×7+5=26$ ✓. Answers can be negative.'},
+ fmt:FMT_EQ,
+ gen(){const x=ri0(-5,12),a=ri(2,9),b=ri0(-20,20),c=a*x+b;
+  return{p:'Solve',q:`${a}x${sg(b)}=${c}`,kind:'eq',v:'x',ans:x,ansD:`x=${x}`,steps:[[`${a}x=${c-b}`,b>0?`take ${b} from both sides`:`add ${-b} to both sides`],[`x=${x}`,`divide both sides by ${a}`]]}}},
+{id:'C2',name:'Equations with brackets',learn:{
+  key:'**Expand the bracket first** (multiply everything inside by the number outside), then solve as normal.',
+  ex:[{t:'Example 1',l:[['4(x+2)=36',''],['4x+8=36','expand'],['4x=28',''],['x=7','']]},{t:'Example 2',l:[['3(2x-5)=21',''],['6x-15=21','expand'],['6x=36','add 15'],['x=6','']]}],
+  watch:'Multiply **both** terms in the bracket: $4(x+2)=4x+8$, **not** $4x+2$.'},
+ fmt:FMT_EQ,
+ gen(){const a=ri(2,9),b=pick([1,1,2,3]),c=ri0(-9,9),x=Math.random()<.2?-ri(1,4):ri(1,9),d=a*(b*x+c);
+  return{p:'Solve',q:`${a}(${co(b,'x')}${sg(c)})=${d}`,kind:'eq',v:'x',ans:x,ansD:`x=${x}`,steps:[[`${co(a*b,'x')}${sg(a*c)}=${d}`,'expand the bracket'],[`${co(a*b,'x')}=${d-a*c}`,a*c>0?`take ${a*c} from both sides`:`add ${-a*c} to both sides`],[`x=${x}`,`divide both sides by ${a*b}`]]}}},
+{id:'C3',name:'Letters on both sides',learn:{
+  key:'Get all the $x$’s on one side by **taking away the smaller $x$ term** from both sides. Then solve as normal.',
+  ex:[{t:'Example 1',l:[['5x+3=2x+18',''],['3x+3=18','take $2x$ from both sides'],['3x=15',''],['x=5','']]},{t:'Example 2 (bigger $x$ on the right)',l:[['2x+15=5x+3',''],['15=3x+3','take $2x$ from both sides'],['12=3x',''],['x=4','']]}],
+  watch:'When you move a term, do the **opposite** operation on both sides: $+2x$ on one side means you take $2x$ from both.'},
+ fmt:FMT_EQ,
+ gen(){let a,c,b,d,x;do{a=ri(1,11);c=ri(1,11);x=ri0(-3,9);b=ri0(-20,20);d=a*x+b-c*x}while(a===c||d===0||Math.abs(d)>40);
+  const steps=[];
+  if(a>c){const k=a-c;steps.push([`${co(k,'x')}${sg(b)}=${d}`,`take $${co(c,'x')}$ from both sides`],[`${co(k,'x')}=${d-b}`,b>0?`take ${b} from both sides`:`add ${-b} to both sides`]);if(k>1)steps.push([`x=${x}`,`divide both sides by ${k}`])}
+  else{const k=c-a;steps.push([`${b}=${co(k,'x')}${sg(d)}`,`take $${co(a,'x')}$ from both sides`],[`${b-d}=${co(k,'x')}`,d>0?`take ${d} from both sides`:`add ${-d} to both sides`]);steps.push([`x=${x}`,k>1?`divide both sides by ${k}`:''])}
+  return{p:'Solve',q:`${co(a,'x')}${sg(b)}=${co(c,'x')}${sg(d)}`,kind:'eq',v:'x',ans:x,ansD:`x=${x}`,steps}}},
+{id:'C4',name:'Equations with fractions',learn:{
+  key:'Get rid of the fraction by **multiplying both sides by the number on the bottom**.',
+  ex:[{t:'Example 1',l:[['~{x}{4}+3=8',''],['~{x}{4}=5','take 3 first'],['x=20','multiply by 4']]},{t:'Example 2',l:[['~{3x+1}{2}=11',''],['3x+1=22','multiply both sides by 2'],['3x=21',''],['x=7','']]}],
+  watch:'In Example 1 the 3 isn’t part of the fraction, so deal with it first. In Example 2 the whole top is over 2, so multiply first.'},
+ fmt:FMT_EQ,
+ gen(){if(Math.random()<.5){const a=ri(2,6),k=ri0(-3,8),x=a*k,b=ri0(-9,9),c=k+b;
+   return{p:'Solve',q:`~{x}{${a}}${sg(b)}=${c}`,kind:'eq',v:'x',ans:x,ansD:`x=${x}`,steps:[[`~{x}{${a}}=${k}`,b>0?`take ${b} first`:`add ${-b} first`],[`x=${x}`,`multiply both sides by ${a}`]]}}
+  let a,p,x,c,q;do{a=ri(2,5);p=ri(1,5);x=ri(1,9);c=ri(1,9);q=a*c-p*x}while(q===0||Math.abs(q)>15);
+  const steps=[[`${co(p,'x')}${sg(q)}=${a*c}`,`multiply both sides by ${a}`],[`${co(p,'x')}=${a*c-q}`,q>0?`take ${q}`:`add ${-q}`]];
+  if(p>1)steps.push([`x=${x}`,`divide by ${p}`]);
+  return{p:'Solve',q:`~{${co(p,'x')}${sg(q)}}{${a}}=${c}`,kind:'eq',v:'x',ans:x,ansD:`x=${x}`,steps}}},
+{id:'C5',name:'Inequalities',learn:{
+  key:'Solve exactly like an equation, but keep the inequality sign. $>$ greater than, $<$ less than, $≥$ greater than or equal to, $≤$ less than or equal to.',
+  ex:[{t:'Example 1',l:[['4x-3>17',''],['4x>20',''],['x>5','']]},{t:'Example 2',l:[['3x+8≤7x-4',''],['12≤4x','take $3x$, add 4'],['3≤x',''],['x≥3','same thing, written with $x$ first']]}],
+  watch:'If you **multiply or divide by a negative number**, **flip the sign**: $-2x<6$ becomes $x>-3$. (Or avoid it by moving the $x$’s to the side where they’re positive, as in Example 2.)'},
+ fmt:'Type e.g. x > 5 or x <= 4 (or use the ≤ ≥ buttons).',
+ gen(){const S=pick(['>','<','G','L']),t=ri(1,3);
+  if(t===1){const a=ri(2,9),b=ri0(-12,12),x0=ri(-4,9),c=a*x0+b;
+   return{p:'Solve',q:`${a}x${sg(b)}${D[S]}${c}`,kind:'ineq',ans:{s:S,v:x0},ansD:`x${D[S]}${x0}`,steps:[[`${a}x${D[S]}${c-b}`,b>0?`take ${b} from both sides`:`add ${-b} to both sides`],[`x${D[S]}${x0}`,`divide both sides by ${a}`]]}}
+  if(t===2){let a,c,b,d,x0;do{a=ri(1,6);c=a+ri(1,5);x0=ri(-3,8);b=ri0(-12,12);d=b-(c-a)*x0}while(d===0||Math.abs(d)>30);
+   const F=FLIP[S],steps=[[`${b-d}${D[S]}${co(c-a,'x')}`,`take $${co(a,'x')}$ and ${d>0?'take '+d:'add '+(-d)} on both sides`]];
+   if(c-a>1)steps.push([`${x0}${D[S]}x`,`divide both sides by ${c-a}`]);
+   steps.push([`x${D[F]}${x0}`,'the same thing, written with $x$ first']);
+   return{p:'Solve',q:`${co(a,'x')}${sg(b)}${D[S]}${co(c,'x')}${sg(d)}`,kind:'ineq',ans:{s:F,v:x0},ansD:`x${D[F]}${x0}`,steps}}
+  const b=ri(5,15),a=ri(2,6),x0=ri(-3,5),c=b-a*x0,F=FLIP[S];
+  return{p:'Solve',q:`${b}-${a}x${D[S]}${c}`,kind:'ineq',ans:{s:F,v:x0},ansD:`x${D[F]}${x0}`,steps:[[`-${a}x${D[S]}${c-b}`,`take ${b} from both sides`],[`x${D[F]}${x0}`,`divide by $-${a}$, so **flip the sign**`]]}}},
+{id:'C6',name:'Expand and simplify',learn:{
+  key:'Expand each bracket, taking the **sign in front of the number** with it. Then collect like terms.',
+  ex:[{t:'Example 1',l:[['2(3x+4)+5(x-1)',''],['=6x+8+5x-5',''],['=11x+3','']]},{t:'Example 2',l:[['4(2y+3)-3(y-5)',''],['=8y+12-3y+15','$-3×-5=+15$'],['=5y+27','']]}],
+  watch:'A minus in front of a bracket changes **every** sign inside: $-(x-7)=-x+7$ and $-3(y-5)=-3y+15$.'},
+ fmt:'Type e.g. 5x+16.',
+ gen(){const u=pick(['x','y','a','p']);let a,b,c,d,e,f,s;do{a=ri(2,6);b=ri(1,5);c=ri0(-9,9);d=ri(1,5);e=ri(1,4);f=ri0(-9,9);s=pick([1,-1])}while(a*b+s*d*e===0||a*c+s*d*f===0);
+  const ans=lin([[a*b+s*d*e,u],[a*c+s*d*f,'']]);
+  return{p:'Expand and simplify',q:`${a}(${lin([[b,u],[c,'']])})${s>0?'+':'-'}${d===1?'':d}(${lin([[e,u],[f,'']])})`,kind:'expr',ans,
+   steps:[[`=${lin([[a*b,u],[a*c,''],[s*d*e,u],[s*d*f,'']])}`,s<0?'the minus multiplies everything in the second bracket':'expand each bracket'],[`=${ans}`,'collect like terms']]}}},
+{id:'C7',name:'Double brackets',learn:{
+  key:'Multiply **every** term in the first bracket by **every** term in the second (4 multiplications), then collect like terms. A grid can help: put one bracket across the top and the other down the side.',
+  ex:[{t:'Example 1',l:[['(2x-3)(x+5)',''],['=2x^2+10x-3x-15',''],['=2x^2+7x-15','']]},{t:'Example 2 (a squared bracket)',l:[['(x+6)^2',''],['=(x+6)(x+6)','write it out twice'],['=x^2+6x+6x+36',''],['=x^2+12x+36','']]}],
+  watch:'$(x+6)^2$ is **not** $x^2+36$. You’d be missing the middle term.'},
+ fmt:'Type x^2 for $x^2$, e.g. x^2+4x-21.',
+ gen(){let a,b,c,d,sq=Math.random()<.3;
+  if(sq){a=c=1;b=d=ri0(-9,9)}else{do{a=pick([1,1,2,3]);c=pick([1,1,2]);b=ri0(-7,7);d=ri0(-7,7)}while(a*d+b*c===0)}
+  const B1=lin([[a,'x'],[b,'']]),B2=lin([[c,'x'],[d,'']]),ans=lin([[a*c,'x^2'],[a*d+b*c,'x'],[b*d,'']]);
+  const steps=[];if(sq)steps.push([`=(${B1})(${B1})`,'write it out twice']);
+  steps.push([`=${lin([[a*c,'x^2'],[a*d,'x'],[b*c,'x'],[b*d,'']])}`,'multiply every term by every term'],[`=${ans}`,'collect like terms']);
+  return{p:'Expand and simplify',q:sq?`(${B1})^2`:`(${B1})(${B2})`,kind:'expr',ans,steps}}},
+{id:'C8',name:'Factorising (3 types)',learn:{
+  key:'Factorising puts brackets back in. It’s the opposite of expanding. **Always look for a common factor first.** Check every answer by expanding it again.',
+  ex:[{h:'Type A: Common factor.',d:'Find the biggest number (and letter) that goes into every term and put it outside the bracket.'},
+      {t:'Example A1',l:[['10x+15=5(2x+3)','5 goes into 10 and 15']]},{t:'Example A2',l:[['6x^2+9x=3x(2x+3)','$3x$ goes into both']]},
+      {h:'Type B: Difference of two squares.',d:'Two terms, both square, with a minus between: $x^2-a^2=(x+a)(x-a)$.'},
+      {t:'Example B1',l:[['x^2-36=(x+6)(x-6)','$36=6^2$']]},{t:'Example B2',l:[['4x^2-25=(2x+5)(2x-5)','$4x^2=(2x)^2$']]},
+      {h:'Type C: Trinomial $x^2+bx+c$.',d:'Find two numbers that **multiply to $c$** and **add to $b$**.'},
+      {t:'Example C1: $x^2+7x+10$',l:[{text:'Multiply to 10, add to 7: **2 and 5**'},['x^2+7x+10=(x+2)(x+5)','']]},{t:'Example C2: $x^2-2x-15$',l:[{text:'Multiply to $-15$, add to $-2$: **$-5$ and 3**'},['x^2-2x-15=(x-5)(x+3)','']]}],
+  watch:'Signs: if $c$ is positive, both numbers have the same sign as $b$, e.g. $x^2-9x+20=(x-4)(x-5)$. If $c$ is negative, one number is positive and one negative.'},
+ fmt:'Type e.g. (x+2)(x+4) or 5(2x+3).',
+ gen(){const t=ri(1,3);
+  if(t===1){const u=pick(['x','y','a']),g=ri(2,9);let p,q;do{p=ri(1,5);q=ri0(-9,9)}while(gcd(p,q)!==1);
+   const wx=Math.random()<.35,inner=lin([[p,u],[q,'']]),hcf=wx?`${g}${u}`:`${g}`,ans=`${hcf}(${inner})`;
+   const qq=wx?lin([[g*p,u+'^2'],[g*q,u]]):lin([[g*p,u],[g*q,'']]);
+   return{p:'Factorise',q:qq,kind:'factor',ans,fmt:'Type e.g. 5(2x+3).',steps:[[`${qq}=${ans}`,`the highest common factor is $${hcf}$`],[`${ans}=${qq}`,'check: expand it again ✓']]}}
+  if(t===2){let k,a;do{k=pick([1,1,1,2,3]);a=ri(1,10)}while(gcd(k,a)!==1);const kx=co(k,'x'),ans=`(${kx}+${a})(${kx}-${a})`;
+   return{p:'Factorise',q:`${co(k*k,'x^2')}-${a*a}`,kind:'factor',ans,fmt:'Type e.g. (x+9)(x-9).',steps:[[`=${k>1?`(${kx})`:'x'}^2-${a}^2`,'both terms are square numbers, with a minus between'],[`=${ans}`,'']]}}
+  let r1,r2;do{r1=ri0(-9,9);r2=ri0(-9,9)}while(r1+r2===0||Math.abs(r1*r2)>60);
+  const qq=lin([[1,'x^2'],[r1+r2,'x'],[r1*r2,'']]),ans=`(x${sg(r1)})(x${sg(r2)})`;
+  return{p:'Factorise',q:qq,kind:'factor',ans,fmt:'Type e.g. (x+2)(x+4).',steps:[[`${r1}, ${r2}`,`multiply to $${r1*r2}$ and add to $${r1+r2}$`],[`${qq}=${ans}`,'']]}}},
+{id:'C9',name:'Substitution',learn:{
+  key:'Replace each letter with its number **in brackets**, then follow BODMAS: powers before multiplying. A negative number squared is **positive**: $(-3)^2=9$.',
+  ex:[{t:'Example 1: $a=-3$, $b=5$. Evaluate $2a^2+b$',l:[['2a^2+b=2×(-3)^2+5',''],['=2×9+5',''],['=23','']]},{t:'Example 2: $x=-2$, $y=-4$. Evaluate $xy-3x$',l:[['xy-3x=(-2)×(-4)-3×(-2)',''],['=8-(-6)',''],['=8+6=14','']]}],
+  watch:'$2a^2$ means $2×a^2$, so square first: $2×9=18$, **not** $(2×-3)^2=36$. On a calculator, type the brackets: (-3)^2.'},
+ fmt:'Type the number.',
+ gen(){const [A,B]=pick([['a','b'],['p','q'],['x','y']]);
+  const TPL=[[[2,{A:2}],[1,{B:1}]],[[1,{A:1,B:1}],[-1,{A:2}]],[[1,{A:2}],[5,{B:1}]],[[1,{A:2}],[-3,{A:1,B:1}]],[[3,{A:2}],[-2,{B:1}]],[[2,{A:2}],[-1,{A:1,B:1}]],[[1,{A:1,B:1}],[-1,{B:2}]],[[1,{A:1,B:1}],[-3,{A:1}]],[[5,{A:2}],[1,{B:1}]]];
+  const tpl=pick(TPL).map(([c,v])=>[Math.sign(c)*(Math.abs(c)===1&&Math.random()<.7?1:ri(1,5)),v]);
+  const val={A:-ri(1,5),B:ri0(-5,5)},nm={A,B};
+  const vs=v=>Object.entries(v).map(([k,p])=>nm[k]+(p>1?'^'+p:'')).join('');
+  const expr=lin(tpl.map(([c,v])=>[c,vs(v)]));
+  let sub='',tv=[];
+  tpl.forEach(([c,v],i)=>{const parts=[];if(Math.abs(c)!==1)parts.push(Math.abs(c));
+    for(const [k,p] of Object.entries(v))parts.push(par(val[k])+(p>1?'^'+p:''));
+    if(Math.abs(c)===1&&parts.length===1&&val[Object.keys(v)[0]]<0&&Object.values(v)[0]===1&&i>0)parts[0]=`(${val[Object.keys(v)[0]]})`;
+    sub+=(i===0?(c<0?'-':''):(c<0?'-':'+'))+parts.join('×');
+    tv.push(c*Object.entries(v).reduce((m,[k,p])=>m*val[k]**p,1));
+  });
+  const ans=tv.reduce((a,b)=>a+b,0);
+  return{p:`If $${A}=${val.A}$ and $${B}=${val.B}$, evaluate`,q:expr,kind:'num',ans,ansD:String(ans),
+   steps:[[`${expr}=${sub}`,'put each number in, in brackets'],[`=${tv[0]}${tv.slice(1).map(sg).join('')}`,'powers first, then multiply'],[`=${ans}`,'']]}}},
+{id:'C10',name:'Straight line & changing the subject',learn:{
+  key:'Three types of question: the gradient and $y$-intercept, the gradient from two points, and changing the subject.',
+  ex:[{h:'Type A: Gradient and $y$-intercept.',d:'In $y=mx+c$, $m$ is the **gradient** (steepness) and $c$ is the **$y$-intercept** (where it crosses the $y$-axis). $y$ must be **on its own** first.'},
+      {t:'Example A1',l:[['2y=8x-6',''],['y=4x-3','divide **every** term by 2'],{text:'So $m=4$, $c=-3$'}]},{t:'Example A2',l:[['y=5-2x',''],['y=-2x+5','reorder: $x$ term first'],{text:'So $m=-2$, $c=5$'}]},
+      {h:'Type B: Gradient from two points.',d:'$m=~{"change in "y}{"change in "x}=~{y_2-y_1}{x_2-x_1}$ (“up over along”).'},
+      {t:'Example B1: $(2,1)$ and $(5,10)$',l:[['m=~{10-1}{5-2}',''],['=~{9}{3}=3','']]},{t:'Example B2: $(-1,8)$ and $(3,-4)$',l:[['m=~{-4-8}{3-(-1)}',''],['=~{-12}{4}=-3','']]},
+      {h:'Type C: Changing the subject.',d:'“Make $x$ the subject” means get $x$ on its own. Undo things in reverse, exactly like solving an equation.'},
+      {t:'Example C1: make $x$ the subject of $y=4x-5$',l:[['y=4x-5',''],['y+5=4x','add 5'],['x=~{y+5}{4}','divide by 4']]},{t:'Example C2: make $a$ the subject of $p=2a+3b$',l:[['p=2a+3b',''],['p-3b=2a','take $3b$'],['a=~{p-3b}{2}','divide by 2']]}],
+  watch:'For two points, take them in the **same order** on the top and the bottom. A negative gradient means the line goes downhill.'},
+ fmt:'',
+ gen(){const t=ri(1,3);
+  if(t===1){const k=pick([1,1,2,3,4]),m=ri0(-5,6),c=ri0(-9,9),alt=k===1&&Math.random()<.5;
+   const q=k>1?`${k}y=${lin([[k*m,'x'],[k*c,'']])}`:alt?`y=${lin([[c,''],[m,'x']])}`:`y=${lin([[m,'x'],[c,'']])}`;
+   const steps=[];if(k>1)steps.push([`y=${lin([[m,'x'],[c,'']])}`,`divide every term by ${k}`]);else if(alt)steps.push([`y=${lin([[m,'x'],[c,'']])}`,'reorder: $x$ term first']);
+   steps.push([`m=${m}, c=${c}`,'read off the gradient and intercept']);
+   return{p:'State the gradient and $y$-intercept of',q,kind:'mc',ans:{m,c},ansD:`m=${m}, c=${c}`,fmt:'Type the gradient in the m box and the y-intercept in the c box.',steps}}
+  if(t===2){const m=ri0(-5,5),x1=ri(-4,4);let x2;do{x2=ri(-4,6)}while(x2===x1);const y1=ri(-6,8),y2=y1+m*(x2-x1);
+   const [P,Q]=x2>x1?[[x1,y1],[x2,y2]]:[[x2,y2],[x1,y1]];
+   return{p:'Find the gradient of the line through',q:`(${P[0]}, ${P[1]})"and"(${Q[0]}, ${Q[1]})`,kind:'num',ans:m,ansD:`m=${m}`,fmt:'Type the gradient, e.g. 3 or -2.',
+    steps:[[`m=~{${Q[1]}-${par(P[1])}}{${Q[0]}-${par(P[0])}}`,'change in $y$ over change in $x$'],[`=~{${Q[1]-P[1]}}{${Q[0]-P[0]}}`,''],[`=${m}`,'']]}}
+  if(Math.random()<.65){const a=ri(2,9),b=ri0(-12,12),num=`y${sg(-b)}`;
+   return{p:'Make $x$ the subject of',q:`y=${a}x${sg(b)}`,kind:'subject',v:'x',ans:`(${num})/${a}`,ansD:`x=~{${num}}{${a}}`,fmt:'Type e.g. x = (y-7)/3. Put brackets round the top of the fraction.',
+    steps:[[`${num}=${a}x`,b>0?`take ${b} from both sides`:`add ${-b} to both sides`],[`x=~{${num}}{${a}}`,`divide both sides by ${a}`]]}}
+  const [L,Tv,O]=pick([['p','a','b'],['a','r','t'],['v','u','t'],['w','k','m']]),k=ri(2,6),j=ri(1,5),s=pick([1,-1]);
+  const num=`${L}${s>0?'-':'+'}${co(j,O)}`;
+  return{p:`Make $${Tv}$ the subject of`,q:`${L}=${lin([[k,Tv],[s*j,O]])}`,kind:'subject',v:Tv,ans:`(${num})/${k}`,ansD:`${Tv}=~{${num}}{${k}}`,fmt:`Type e.g. ${Tv} = (${L}-3${O})/2. Put brackets round the top of the fraction.`,
+   steps:[[`${num}=${co(k,Tv)}`,`${s>0?'take':'add'} $${co(j,O)}$ ${s>0?'from':'to'} both sides`],[`${Tv}=~{${num}}{${k}}`,`divide both sides by ${k}`]]}}},
+];
+const COLS=[
+  {c:'A',title:'MENTAL ALGEBRA',sub:'do these in your head'},
+  {c:'B',title:'POWERS & SURDS',sub:'do these in your head'},
+  {c:'C',title:'KEY SKILLS',sub:'show working in your jotter'},
+];
+const byId=Object.fromEntries(SKILLS.map(s=>[s.id,s]));
+const colOf=id=>COLS.find(c=>c.c===id[0]);
+const MASTER=5;
+
+/* ================= progress (this browser only) ================= */
+const STORE='algebra-ninjas-practice-v1';
+let prog={};
+try{prog=JSON.parse(localStorage.getItem(STORE))||{}}catch(e){prog={}}
+const save=()=>{try{localStorage.setItem(STORE,JSON.stringify(prog))}catch(e){}};
+const P=id=>prog[id]||(prog[id]={right:0,mastered:false});
+
+/* ================= rendering ================= */
+function stepsHTML(lines,hideAfter){
+  let h='<div class="steps">';
+  lines.forEach((ln,i)=>{
+    const hid=hideAfter!=null&&i>hideAfter?' hidden':'';
+    if(!Array.isArray(ln)){h+=`<div class="full${hid}" data-s="${i}">${T(ln.text)}</div>`;return}
+    const [m,note]=ln;
+    // split at the first top-level relation so working lines up
+    let d=0,cut=-1;
+    for(let k=0;k<m.length;k++){const ch=m[k];if(ch==='{'||ch==='(')d++;else if(ch==='}'||ch===')')d--;else if(d===0&&'=<>≤≥'.includes(ch)){cut=k;break}}
+    const lhs=cut<0?m:m.slice(0,cut),rhs=cut<0?'':m.slice(cut);
+    h+=`<div class="lhs${hid}" data-s="${i}">${M(lhs)}</div><div class="${hid}" data-s="${i}">${M(rhs)}</div><div class="note${hid}" data-s="${i}">${note?T(note):''}</div>`;
+  });
+  return h+'</div>';
+}
+function renderHome(){
+  const done=SKILLS.filter(s=>P(s.id).mastered).length;
+  let h=`<p class="intro">Every question number on your weekly <b>Ninja sheet</b> tests the <b>same skill every week</b>. Got Powers &amp; Surds Q7 wrong? Pick <b>Powers &amp; Surds Q7</b> below. Read the key idea, try the worked examples, then practise until you get <b>${MASTER} in a row</b> to earn a ★.</p><div class="cols">`;
+  for(const col of COLS){
+    h+=`<div class="col"><h2>${col.title}</h2><div class="sub">${col.sub}</div>`;
+    SKILLS.filter(s=>s.id[0]===col.c).forEach(s=>{const p=P(s.id);
+      h+=`<button class="tile${p.mastered?' done':''}" data-id="${s.id}"><span class="qn">Q${s.id.slice(1)}</span><span class="nm">${T(s.name)}</span><span class="st">${p.mastered?'★':''}</span></button>`});
+    h+='</div>';
+  }
+  h+=`</div><div class="summary"><span>★ ${done} / ${SKILLS.length} skills mastered on this device</span><button class="linkbtn" id="reset">Reset my progress</button></div>`;
+  const el=document.getElementById('home');el.innerHTML=h;
+  el.querySelectorAll('.tile').forEach(b=>b.onclick=()=>{location.hash=b.dataset.id});
+  document.getElementById('reset').onclick=()=>{if(confirm('Clear all your stars and progress on this device?')){prog={};save();renderHome()}};
+}
+
+let S=null; // current practice state
+function renderSkill(id){
+  const s=byId[id],col=colOf(id),L=s.learn;
+  let ex='';
+  L.ex.forEach((e,i)=>{
+    if(e.h){ex+=`<div class="typeh">${T(e.h)} <span>${T(e.d)}</span></div>`;return}
+    ex+=`<div class="ex" data-ex="${i}"><div class="t">${T(e.t)}</div>${stepsHTML(e.l,e.l.length>1?0:null)}${e.l.length>1?'<button class="nextstep">Show next step ▸</button>':''}</div>`;
+  });
+  const el=document.getElementById('skill');
+  el.innerHTML=`<div class="topbar"><button class="back" id="back">◂ All skills</button></div>
+  <div class="skillhead"><span class="tag">${col.title} Q${id.slice(1)}</span>${T(s.name)}</div>
+  <div class="skillbody">
+    <div class="key"><b>Key idea.</b> ${T(L.key)}</div>
+    <div class="exhead"><h3>Worked examples</h3><span><span style="font-size:14px;color:var(--note)">Try each step yourself before you reveal it.</span> <button class="smallbtn" id="showall">Show all working</button></span></div>
+    <div class="exgrid">${ex}</div>
+    <div class="watch"><b class="w">Watch out!</b> ${T(L.watch)}</div>
+  </div>
+  <div class="practice">
+    <div class="phead"><span>PRACTICE · ${col.sub}</span><span class="dots" id="dots"></span></div>
+    <div class="pbody">
+      <div class="qbox"><div class="prompt" id="qp"></div><div class="qmath" id="qm"></div></div>
+      <div class="arow" id="arow"></div>
+      <div class="keypad" id="keypad"></div>
+      <div class="preview" id="preview"></div>
+      <div class="fmt" id="fmt"></div>
+      <div id="fb" class="fb"></div>
+      <div class="actions">
+        <button id="howbtn">Show me how</button>
+        <button id="ansbtn">Show answer</button>
+        <button id="nextbtn">New question ▸</button>
+      </div>
+      <div id="how" class="how"></div>
+      <div id="mast"></div>
+    </div>
+  </div>`;
+  document.getElementById('back').onclick=()=>{location.hash=''};
+  el.querySelectorAll('.ex').forEach(box=>{
+    const btn=box.querySelector('.nextstep');if(!btn)return;
+    btn.onclick=()=>{
+      const hidden=[...box.querySelectorAll('.hidden')];if(!hidden.length)return;
+      const n=hidden[0].dataset.s;box.querySelectorAll(`.hidden[data-s="${n}"]`).forEach(x=>x.classList.remove('hidden'));
+      if(!box.querySelector('.hidden'))btn.remove();
+    };
+  });
+  document.getElementById('showall').onclick=()=>{el.querySelectorAll('.exgrid .hidden').forEach(x=>x.classList.remove('hidden'));el.querySelectorAll('.nextstep').forEach(b=>b.remove())};
+  document.getElementById('howbtn').onclick=showHow;
+  document.getElementById('ansbtn').onclick=showAnswer;
+  document.getElementById('nextbtn').onclick=newQuestion;
+  S={id,streak:0,count:0};
+  newQuestion();
+}
+function drawDots(){
+  const d=document.getElementById('dots');
+  d.innerHTML=`<span>${S.streak} in a row</span>`+Array.from({length:MASTER},(_,i)=>`<span class="dot${i<Math.min(S.streak,MASTER)?' on':''}"></span>`).join('');
+}
+function newQuestion(){
+  const s=byId[S.id];
+  let q;for(let k=0;k<20;k++){q=s.gen();if(!S.q||M(q.q)!==M(S.q.q))break}
+  S.q=q;S.solved=false;S.helped=false;S.count++;
+  document.getElementById('qp').innerHTML=q.p?T(q.p):'Simplify';
+  if(!q.p&&s.id[0]==='A')document.getElementById('qp').innerHTML='Work it out in your head';
+  if(!q.p&&s.id[0]==='B')document.getElementById('qp').innerHTML='Simplify';
+  document.getElementById('qm').innerHTML=M(q.q);
+  const arow=document.getElementById('arow');
+  if(q.kind==='mc'){
+    arow.innerHTML=`<label for="in1"><i style="font-family:Times New Roman,serif">m</i> =</label><input id="in1" class="half" autocomplete="off" autocapitalize="off" spellcheck="false"><label for="in2"><i style="font-family:Times New Roman,serif">c</i> =</label><input id="in2" class="half" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="check" id="checkbtn">Check</button>`;
+  }else{
+    arow.innerHTML=`<input id="in1" placeholder="Your answer" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="check" id="checkbtn">Check</button>`;
+  }
+  const keys=q.kind==='mc'||q.kind==='num'||q.kind==='eq'?['−','/']:q.kind==='ineq'?['<','>','≤','≥','−']:['x²','^','√','(',')','/'];
+  document.getElementById('keypad').innerHTML=keys.map(k=>`<button data-k="${k}">${k}</button>`).join('');
+  document.querySelectorAll('#keypad button').forEach(b=>b.onclick=()=>insertKey(b.dataset.k));
+  document.getElementById('fmt').innerHTML=T(q.fmt||s.fmt||'');
+  document.getElementById('fb').className='fb';document.getElementById('fb').innerHTML='';
+  document.getElementById('how').innerHTML='';
+  document.getElementById('preview').innerHTML='';
+  document.getElementById('checkbtn').onclick=check;
+  document.querySelectorAll('#arow input').forEach(inp=>{
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();S.solved?newQuestion():check()}});
+    inp.addEventListener('input',updatePreview);
+    inp.addEventListener('focus',()=>{S.lastInput=inp});
+  });
+  S.lastInput=document.getElementById('in1');
+  drawDots();
+  document.getElementById('nextbtn').classList.remove('primary');
+  if(S.count>1)S.lastInput.focus({preventScroll:true});
+}
+function insertKey(k){
+  const inp=S.lastInput||document.getElementById('in1');
+  const ins={'x²':'^2','−':'-'}[k]||k;
+  const a=inp.selectionStart??inp.value.length,b=inp.selectionEnd??inp.value.length;
+  inp.value=inp.value.slice(0,a)+ins+inp.value.slice(b);
+  inp.focus();inp.setSelectionRange(a+ins.length,a+ins.length);updatePreview();
+}
+function updatePreview(){
+  const v=document.getElementById('in1').value;
+  if(S.q.kind==='mc'){document.getElementById('preview').innerHTML='';return}
+  const shown=v.replace(/sqrt|root/gi,'√').replace(/\*/g,'×');
+  document.getElementById('preview').innerHTML=v.trim()&&/[\^√]|sqrt|root/i.test(v)?`Reads as: <span class="m">${M(shown)}</span>`:'';
+}
+function check(){
+  if(S.solved)return;
+  const q=S.q,ins=[...document.querySelectorAll('#arow input')].map(i=>i.value);
+  if(ins.every(v=>!v.trim()))return;
+  const r=q.kind==='mc'?checkMC(ins,q):CHECK[q.kind](ins[0],q);
+  const fb=document.getElementById('fb');
+  if(r.ok){
+    S.solved=true;
+    if(!S.helped){S.streak++;const p=P(S.id);p.right++;
+      if(S.streak>=MASTER&&!p.mastered){p.mastered=true;document.getElementById('mast').innerHTML=`<div class="mastered">★ Skill mastered! ${MASTER} in a row. Try another skill, or keep going for practice. ★</div>`}
+      save();}
+    fb.className='fb ok';
+    fb.innerHTML=S.helped?'✓ Correct! <span class="sm">(This one doesn’t count towards your streak because you looked at the help.)</span>':pick(['✓ Correct!','✓ Correct, nice work!','✓ Correct! Ninja skills.']);
+    document.getElementById('nextbtn').classList.add('primary');
+    document.getElementById('nextbtn').focus({preventScroll:true});
+  }else{
+    if(r.cls==='no')S.streak=0;
+    fb.className='fb '+r.cls;
+    fb.innerHTML=esc(r.msg)+(r.cls==='no'?' <span class="sm">Stuck? Press <b>Show me how</b>.</span>':'');
+  }
+  drawDots();
+}
+function showHow(){
+  S.helped=true;if(!S.solved)S.streak=0;drawDots();
+  document.getElementById('how').innerHTML=`<div class="ex"><div class="t">How to do this one</div>${stepsHTML(S.q.steps[0][0].startsWith(S.q.q)?S.q.steps:[[S.q.q,''],...S.q.steps])}</div>`;
+}
+function showAnswer(){
+  S.helped=true;if(!S.solved)S.streak=0;drawDots();
+  const q=S.q,fb=document.getElementById('fb');
+  fb.className='fb near';fb.innerHTML=`Answer: <span class="m" style="font-size:20px">${M(q.ansD||q.ans)}</span>`;
+}
+function route(){
+  const id=location.hash.slice(1);
+  const home=document.getElementById('home'),sk=document.getElementById('skill');
+  if(byId[id]){home.hidden=true;sk.hidden=false;renderSkill(id);window.scrollTo(0,0)}
+  else{sk.hidden=true;home.hidden=false;renderHome()}
+}
+if(typeof document!=='undefined'&&document.getElementById('home')){
+  document.getElementById('home-link').onclick=()=>{location.hash=''};
+  window.addEventListener('hashchange',route);
+  route();
+}
+</script>
+</body>
+</html>
