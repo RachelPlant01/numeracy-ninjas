@@ -41,6 +41,10 @@ UI = {
         "mental_strategies_title": "⚡ Mental Strategies",
         "mental_strategies_desc": "Quick mental-maths strategies and number sense.",
         "choose_mental_strategies": "Choose Mental Strategies",
+        "algebra_title": "🥋 Algebra Dojo",
+        "algebra_desc": "Algebra skills for National 5, with worked examples.",
+        "algebra_caption": "30 skills · worked examples and practice",
+        "choose_algebra": "Choose Algebra Dojo",
         "back": "← Back",
         "choose_skill": "Choose the skill you're working on:",
         "session_info": "You'll do **{n} questions** and we'll time how long it takes.",
@@ -79,6 +83,10 @@ UI = {
         "mental_strategies_title": "⚡ Ro-innleachdan Inntinn",
         "mental_strategies_desc": "Ro-innleachdan luath airson àireamhachd na h-inntinn.",
         "choose_mental_strategies": "Tagh Ro-innleachdan Inntinn",
+        "algebra_title": "🥋 Algebra Dojo",
+        "algebra_desc": "Sgilean ailseabra airson Ìre Nàiseanta 5, le eisimpleirean obraichte.",
+        "algebra_caption": "30 sgilean · eisimpleirean obraichte agus cleachdadh",
+        "choose_algebra": "Tagh Algebra Dojo",
         "back": "← Air ais",
         "choose_skill": "Tagh an sgil air a bheil thu ag obair:",
         "session_info": "Nì thu **{n} ceistean** agus cuiridh sinn ùine ris.",
@@ -322,7 +330,7 @@ def render_landing():
     banner()
     language_toggle()
     st.markdown(f'<div class="app-sub">{tr("subtitle")}</div>', unsafe_allow_html=True)
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     with col1:
         st.markdown(f"### {tr('key_skills_title')}")
         st.write(tr("key_skills_desc"))
@@ -339,15 +347,19 @@ def render_landing():
             st.session_state.category = "mental_strategies"
             go("skill_select")
             st.rerun()
+    with col3:
+        st.markdown(f"### {tr('algebra_title')}")
+        st.write(tr("algebra_desc"))
+        st.caption(tr("algebra_caption"))
+        if st.button(tr("choose_algebra"), use_container_width=True, type="primary"):
+            go("algebra")
+            st.rerun()
     st.divider()
     if st.button("📝 Take an assessment", use_container_width=True):
         go("assess_start")
         st.rerun()
     if st.button("🧑‍🏫 Teacher tools — worksheets, trackers and assessments", use_container_width=True):
         go("teacher")
-        st.rerun()
-    if st.button("🥋 Algebra Dojo — worked examples and practice for National 5", use_container_width=True):
-        go("algebra")
         st.rerun()
 
 
