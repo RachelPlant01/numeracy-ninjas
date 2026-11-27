@@ -57,7 +57,10 @@ sup{font-size:.6em;line-height:0}
 .answer:focus{box-shadow:0 0 0 3px var(--goldbg),0 0 0 5px var(--gold)}
 .seg.active{border-bottom:3px solid var(--gold)}
 .seg .ph{color:var(--line)}
-.answer sup{font-size:.55em;margin-left:2px;min-width:.6em;display:inline-block}
+.answer .v{font-size:1.15em}
+/* the index box: raised and small, like a real index, so pupils see z² and not z2 */
+.answer .idx{position:relative;top:-.75em;display:inline-block;font-size:.55em;min-width:1.2em;height:1.35em;line-height:1.2em;margin-left:3px;padding:0 .15em;text-align:center;border:2px dashed var(--gold);border-radius:4px;background:var(--goldbg)}
+.answer .idx.filled{border-style:solid}
 .keypad{max-width:320px;margin:0 auto}
 .keypad .letters{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:6px}
 .keypad .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
@@ -248,7 +251,7 @@ const better=(a,b)=>!b||a.earned!==b.earned?a.earned||!b:a.right!==b.right?a.rig
 const swatch=b=>`<span class="belt" style="background:${b.colour}"></span>`;
 
 function renderHome(){
-  let h=`<p class="intro">Everyone starts at <b>white belt</b> and works their way up. To earn a belt, get <b>${TO_EARN} out of ${QUESTIONS}</b> right with an average time of <b>⏱ 6 seconds</b> or less per question (a bit longer for the harder belts), then have a go at the next belt. Type your answer or use the keypad. For answers with a letter, type the number, then the letter, then the power if there is one, e.g. <b>12</b>, <b><i class="v">x</i></b>, <b>2</b> for 12<i class="v">x</i><sup>2</sup>.</p><div class="ladder">`;
+  let h=`<p class="intro">Everyone starts at <b>white belt</b> and works their way up. To earn a belt, get <b>${TO_EARN} out of ${QUESTIONS}</b> right with an average time of <b>⏱ 6 seconds</b> or less per question (a bit longer for the harder belts), then have a go at the next belt. Type your answer or use the keypad. For answers with a letter, type the number, then the letter. A small box pops up for the index: type it in, or leave it empty if there isn’t one. So for 12<i class="v">x</i><sup>2</sup>, type <b>12</b>, <b><i class="v">x</i></b>, <b>2</b>.</p><div class="ladder">`;
   BELTS.forEach((b,i)=>{
     const s=best[b.id];
     h+=`<button class="tile${earned(b.id)?' done':''}" data-b="${b.id}"><span class="num">${i+1}</span>${swatch(b)}<span class="nm"><b>${beltName(b)}</b><br><span class="d">${b.desc} · <span class="nw">⏱ ${b.secs}s average</span></span></span><span class="best">${s==null?'':earned(b.id)?'✔ Earned':'Best '+s.right+'/'+QUESTIONS+' · '+s.avg.toFixed(1)+'s'}</span></button>`;
@@ -274,8 +277,8 @@ function startQuiz(beltId){
 function drawQuiz(){
   const n=Q.results.length,right=Q.results.filter(r=>r.ok).length;
   const hasVar=Q.q.answer.letter!==null,a=Q.ans,onPower=hasVar&&a.letter!=='';
-  const coeff=a.coefficient||'<span class="ph">0</span>';
-  const power=a.letter?`<i class="v">${a.letter}</i><sup class="seg${onPower?' active':''}">${a.exponent||'<span class="ph">·</span>'}</sup>`:'';
+  const coeff=a.coefficient||(a.letter?'':'<span class="ph">0</span>');
+  const power=a.letter?`<i class="v">${a.letter}</i><span class="idx${a.exponent?' filled':''}" aria-label="index">${a.exponent}</span>`:'';
   $('quiz').innerHTML=`<div class="quiz">
     <div class="qtop"><div class="bar"><div class="fill" style="width:${n/QUESTIONS*100}%"></div><div class="lbl">Question ${n+1} / ${QUESTIONS}</div></div><button class="quit" id="quit">Quit</button></div>
     <div class="levelname">${swatch(Q.belt)}${beltName(Q.belt)}</div>
@@ -287,7 +290,7 @@ function drawQuiz(){
       <div class="grid">${['7','8','9','4','5','6','1','2','3','.','0','Backspace'].map(k=>`<button data-k="${k}">${k==='Backspace'?'⌫':k}</button>`).join('')}</div>
       <button class="enter" data-k="Enter">Enter</button>
     </div>
-    <div class="hint">${hasVar?'Type the number, then the letter, then the power.':'You can type on the keyboard too.'}</div>
+    <div class="hint">${!hasVar?'You can type on the keyboard too.':onPower?'Type the index in the small box, or press Enter if there isn’t one.':'Type the number, then the letter.'}</div>
   </div>`;
   $('quit').onclick=()=>{Q.done=true;renderHome()};
   $('quiz').querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{key(b.dataset.k);$('ansbox').focus()});
