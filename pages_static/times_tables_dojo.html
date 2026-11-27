@@ -53,11 +53,6 @@ sup{font-size:.6em;line-height:0}
 .question{font-size:46px;font-weight:700;margin:10px 0 14px;min-height:64px;transition:color .2s;white-space:nowrap}
 .question.correct{color:var(--good)}
 .question.incorrect{color:var(--warn)}
-.question.slow{color:#B7950B}
-.clock{position:relative;height:20px;border-radius:10px;background:var(--exbg);border:1.5px solid var(--line);overflow:hidden;max-width:320px;margin:0 auto 12px}
-.clock .cfill{height:100%;background:var(--good)}
-.clock .clbl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
-.clock.out{border-color:var(--gold);background:var(--goldbg)}
 .answer{display:flex;justify-content:center;align-items:baseline;min-height:64px;font-size:38px;font-weight:700;border:2px solid var(--ink);border-radius:8px;padding:6px 14px;margin:0 auto 12px;max-width:320px;outline:none}
 .answer:focus{box-shadow:0 0 0 3px var(--goldbg),0 0 0 5px var(--gold)}
 .seg.active{border-bottom:3px solid var(--gold)}
@@ -86,9 +81,6 @@ sup{font-size:.6em;line-height:0}
 .review h3{margin:2px 0 6px;font-size:17px;color:var(--warn)}
 .review ul{margin:0;padding-left:20px}
 .review li{margin:3px 0}
-.slowlist{text-align:left;background:var(--goldbg);border:1px solid var(--gold);border-radius:8px;padding:8px 14px;margin-bottom:14px}
-.slowlist h3{margin:2px 0 6px;font-size:17px;color:#7a5f00}
-.slowlist ul{margin:0;padding-left:20px}
 .allright{background:var(--goodbg);border:1px solid var(--good);color:var(--good);border-radius:8px;padding:8px 14px;font-weight:700;margin-bottom:14px}
 .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 .actions button{background:#fff;border:1.5px solid var(--ink);border-radius:6px;padding:8px 16px;font-size:15px}
@@ -200,10 +192,10 @@ function algebra(level){
 }
 
 // The belts, easiest first. Every belt is open from the start, so a teacher
-// can send a pupil straight to the one they're working on. `secs` is how long
-// each answer can take and still count towards the belt: 6 seconds for plain
-// tables, the same as the Multiplication Tables Check, and longer for the
-// belts with decimals or letters, which take more keypresses.
+// can send a pupil straight to the one they're working on. `secs` is the
+// average time per answer a round must beat to earn the belt: 6 seconds for
+// plain tables, the same as the Multiplication Tables Check, and longer for
+// the belts with decimals or letters, which take more keypresses.
 const BELTS=[
   {id:'white', name:'White', colour:'#FFFFFF',gen:()=>classic('bronze'),secs:6,desc:'2 to 5 times tables'},
   {id:'yellow',name:'Yellow',colour:'#F4D03F',gen:()=>classic('silver'),secs:6,desc:'2 to 9 times tables'},
@@ -241,7 +233,7 @@ function submittedHTML(s){
 }
 
 /* ================= best scores (this browser only) ================= */
-const STORE='times-tables-dojo-v2'; // v2: belts need answers in time
+const STORE='times-tables-dojo-v3'; // v3: belts need a fast enough average time
 let best={};
 try{best=JSON.parse(localStorage.getItem(STORE))||{}}catch(e){best={}}
 const saveBest=()=>{try{localStorage.setItem(STORE,JSON.stringify(best))}catch(e){}};
@@ -250,14 +242,16 @@ const saveBest=()=>{try{localStorage.setItem(STORE,JSON.stringify(best))}catch(e
 const QUESTIONS=10,TO_EARN=8;
 const $=id=>document.getElementById(id);
 function show(id){for(const p of ['home','quiz','results'])$(p).hidden=p!==id;window.scrollTo(0,0)}
-const earned=id=>(best[id]??-1)>=TO_EARN;
+// best[id] is the pupil's best round on that belt: {right, avg, earned}
+const earned=id=>!!best[id]?.earned;
+const better=(a,b)=>!b||a.earned!==b.earned?a.earned||!b:a.right!==b.right?a.right>b.right:a.avg<b.avg;
 const swatch=b=>`<span class="belt" style="background:${b.colour}"></span>`;
 
 function renderHome(){
-  let h=`<p class="intro">Everyone starts at <b>white belt</b> and works their way up. To earn a belt, get <b>${TO_EARN} out of ${QUESTIONS}</b> right, each one answered before its <b>⏱ timer</b> runs out, then have a go at the next belt. The timer is there to build speedy recall, so if it runs out, keep going and answer anyway. Type your answer or use the keypad. For answers with a letter, type the number, then the letter, then the power if there is one, e.g. <b>12</b>, <b><i class="v">x</i></b>, <b>2</b> for 12<i class="v">x</i><sup>2</sup>.</p><div class="ladder">`;
+  let h=`<p class="intro">Everyone starts at <b>white belt</b> and works their way up. To earn a belt, get <b>${TO_EARN} out of ${QUESTIONS}</b> right with an average time of <b>⏱ 6 seconds</b> or less per question (a bit longer for the harder belts), then have a go at the next belt. Type your answer or use the keypad. For answers with a letter, type the number, then the letter, then the power if there is one, e.g. <b>12</b>, <b><i class="v">x</i></b>, <b>2</b> for 12<i class="v">x</i><sup>2</sup>.</p><div class="ladder">`;
   BELTS.forEach((b,i)=>{
     const s=best[b.id];
-    h+=`<button class="tile${earned(b.id)?' done':''}" data-b="${b.id}"><span class="num">${i+1}</span>${swatch(b)}<span class="nm"><b>${beltName(b)}</b><br><span class="d">${b.desc} · <span class="nw">⏱ ${b.secs}s</span></span></span><span class="best">${s==null?'':earned(b.id)?'✔ Earned':'Best '+s+'/'+QUESTIONS}</span></button>`;
+    h+=`<button class="tile${earned(b.id)?' done':''}" data-b="${b.id}"><span class="num">${i+1}</span>${swatch(b)}<span class="nm"><b>${beltName(b)}</b><br><span class="d">${b.desc} · <span class="nw">⏱ ${b.secs}s average</span></span></span><span class="best">${s==null?'':earned(b.id)?'✔ Earned':'Best '+s.right+'/'+QUESTIONS+' · '+s.avg.toFixed(1)+'s'}</span></button>`;
   });
   const n=BELTS.filter(b=>earned(b.id)).length;
   h+=`</div><div class="summary"><span>${n} / ${BELTS.length} belts earned on this device</span><button class="linkbtn" id="reset">Reset my belts</button></div>`;
@@ -278,16 +272,15 @@ function startQuiz(beltId){
 }
 
 function drawQuiz(){
-  const n=Q.results.length,right=Q.results.filter(r=>r.ok).length,quick=Q.results.filter(r=>r.ok&&r.fast).length;
+  const n=Q.results.length,right=Q.results.filter(r=>r.ok).length;
   const hasVar=Q.q.answer.letter!==null,a=Q.ans,onPower=hasVar&&a.letter!=='';
   const coeff=a.coefficient||'<span class="ph">0</span>';
   const power=a.letter?`<i class="v">${a.letter}</i><sup class="seg${onPower?' active':''}">${a.exponent||'<span class="ph">·</span>'}</sup>`:'';
   $('quiz').innerHTML=`<div class="quiz">
     <div class="qtop"><div class="bar"><div class="fill" style="width:${n/QUESTIONS*100}%"></div><div class="lbl">Question ${n+1} / ${QUESTIONS}</div></div><button class="quit" id="quit">Quit</button></div>
     <div class="levelname">${swatch(Q.belt)}${beltName(Q.belt)}</div>
-    <div class="score">${right} right · ${quick} in time</div>
+    <div class="score">${right} / ${n}</div>
     <div class="question ${Q.flash||''}">${Q.q.text}</div>
-    <div class="clock" id="clock"><div class="cfill" id="cfill"></div><span class="clbl" id="clbl"></span></div>
     <div class="answer" id="ansbox" tabindex="0" role="textbox" aria-label="Your answer"><span class="seg${onPower?'':' active'}">${coeff}</span>${power}</div>
     <div class="keypad">
       ${hasVar?`<div class="letters">${LETTERS.map(l=>`<button data-k="${l}">${l}</button>`).join('')}</div>`:''}
@@ -296,21 +289,9 @@ function drawQuiz(){
     </div>
     <div class="hint">${hasVar?'Type the number, then the letter, then the power.':'You can type on the keyboard too.'}</div>
   </div>`;
-  tick();
   $('quit').onclick=()=>{Q.done=true;renderHome()};
   $('quiz').querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{key(b.dataset.k);$('ansbox').focus()});
 }
-
-// Shrinks the timer bar; once it runs out the question can still be answered,
-// it just won't count towards the belt.
-function tick(){
-  if(!Q||Q.done||!$('cfill'))return;
-  const limit=Q.belt.secs*1000,left=Math.max(0,limit-(Date.now()-Q.qStart));
-  $('cfill').style.width=(left/limit*100)+'%';
-  $('clock').classList.toggle('out',left===0);
-  $('clbl').textContent=left?`⏱ ${Math.ceil(left/1000)}s`:"Time's up. Answer it anyway!";
-}
-setInterval(tick,100);
 
 const MAX_COEFF=7,MAX_POWER=2;
 function key(k){
@@ -334,10 +315,10 @@ function key(k){
 
 function submit(){
   if(Q.ans.coefficient===''&&Q.ans.letter==='')return;
-  const ok=isCorrect(Q.q.answer,Q.ans),ms=Date.now()-Q.qStart,fast=ms<=Q.belt.secs*1000;
-  Q.results.push({text:Q.q.text,expected:answerHTML(Q.q.answer),given:submittedHTML(Q.ans),ok,fast,ms});
+  const ok=isCorrect(Q.q.answer,Q.ans);
+  Q.results.push({text:Q.q.text,expected:answerHTML(Q.q.answer),given:submittedHTML(Q.ans),ok,ms:Date.now()-Q.qStart});
   if(Q.results.length>=QUESTIONS){Q.done=true;return renderResults()}
-  Q.flash=!ok?'incorrect':fast?'correct':'slow';
+  Q.flash=ok?'correct':'incorrect';
   const round=Q;
   setTimeout(()=>{if(Q===round&&!round.done){round.flash=null;drawQuiz();$('ansbox').focus()}},350);
   Q.q=Q.belt.gen();
@@ -357,30 +338,31 @@ document.addEventListener('keydown',e=>{
 
 function renderResults(){
   const r=Q.results,belt=Q.belt,right=r.filter(x=>x.ok).length;
-  const quick=r.filter(x=>x.ok&&x.fast).length; // what counts towards the belt
-  const avg=r.reduce((s,x)=>s+x.ms,0)/r.length/1000;
-  const prev=best[belt.id],hadBelt=earned(belt.id);
-  const newBest=prev==null||quick>prev;
-  if(newBest){best[belt.id]=quick;saveBest()}
-  const wrong=r.filter(x=>!x.ok),slow=r.filter(x=>x.ok&&!x.fast);
+  // rounded to match the average shown, so 6.0s always counts as 6 seconds or less
+  const avg=Math.round(r.reduce((s,x)=>s+x.ms,0)/r.length/100)/10;
+  const fastEnough=avg<=belt.secs,passed=right>=TO_EARN&&fastEnough;
+  const hadBelt=earned(belt.id),round={right,avg,earned:passed||hadBelt};
+  const newBest=better(round,best[belt.id])&&best[belt.id]!=null;
+  if(better(round,best[belt.id])){best[belt.id]=round;saveBest()}
+  const wrong=r.filter(x=>!x.ok);
   const next=BELTS[BELTS.indexOf(belt)+1];
+  const target=`${TO_EARN} right with an average of ${belt.secs} seconds or less`;
   let banner;
-  if(quick>=TO_EARN&&!hadBelt)banner=`<div class="pb">${swatch(belt)}You've earned your ${beltName(belt)}!</div>`;
-  else if(quick>=TO_EARN)banner=newBest?'<div class="pb">New best score on this device!</div>':'';
-  else if(right>=TO_EARN)banner=`<div class="nearly">You got <b>${right} right</b>. Now work on your speed! Get ${TO_EARN} right within ${belt.secs} seconds each to earn your ${beltName(belt)}.</div>`;
-  else banner=`<div class="nearly">Get ${TO_EARN} right within ${belt.secs} seconds each to earn your ${beltName(belt)}. Every round is practice, so have another go!</div>`;
+  if(passed&&!hadBelt)banner=`<div class="pb">${swatch(belt)}You've earned your ${beltName(belt)}!</div>`;
+  else if(passed)banner=newBest?'<div class="pb">New best on this device!</div>':'';
+  else if(right>=TO_EARN)banner=`<div class="nearly">You got <b>${right} right</b>. Now work on your speed! Your average was <b>${avg.toFixed(1)}s</b>. Get ${target} to earn your ${beltName(belt)}.</div>`;
+  else banner=`<div class="nearly">Get ${target} to earn your ${beltName(belt)}. Every round is practice, so have another go!</div>`;
   $('results').innerHTML=`<div class="results">
     <h2>Round complete!</h2>
     ${banner}
     <div class="stats">
       <div class="stat"><span class="val">${right} / ${r.length}</span><span class="lab">Correct</span></div>
-      <div class="stat"><span class="val">${quick} / ${r.length}</span><span class="lab">Right in ${belt.secs}s or less</span></div>
       <div class="stat"><span class="val">${avg.toFixed(1)}s</span><span class="lab">Average per question</span></div>
+      <div class="stat"><span class="val">${belt.secs}s</span><span class="lab">Belt target</span></div>
     </div>
     ${wrong.length?`<div class="review"><h3>Have another look at these</h3><ul>${wrong.map(x=>`<li><b>${x.text}</b>: you answered ${x.given}, the answer was <b>${x.expected}</b></li>`).join('')}</ul></div>`
       :'<div class="allright">Every question right. Brilliant!</div>'}
-    ${slow.length?`<div class="slowlist"><h3>Right, but over ${belt.secs} seconds. Practise these to make them quicker</h3><ul>${slow.map(x=>`<li><b>${x.text} = ${x.expected}</b> (${(x.ms/1000).toFixed(1)}s)</li>`).join('')}</ul></div>`:''}
-    <div class="actions">${quick>=TO_EARN&&next?`<button class="primary" id="next">Try the ${beltName(next)} ▶</button><button id="again">🔁 Play again</button>`:'<button class="primary" id="again">🔁 Play again</button>'}<button id="levels">Choose another belt</button></div>
+    <div class="actions">${passed&&next?`<button class="primary" id="next">Try the ${beltName(next)} ▶</button><button id="again">🔁 Play again</button>`:'<button class="primary" id="again">🔁 Play again</button>'}<button id="levels">Choose another belt</button></div>
   </div>`;
   $('again').onclick=()=>startQuiz(belt.id);
   if($('next'))$('next').onclick=()=>startQuiz(next.id);
