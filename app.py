@@ -45,6 +45,10 @@ UI = {
         "algebra_desc": "Algebra skills for National 5, with worked examples.",
         "algebra_caption": "30 skills · worked examples and practice",
         "choose_algebra": "Choose Algebra Dojo",
+        "times_title": "✖️ Times Tables Dojo",
+        "times_desc": "Earn your belts, from white belt to master.",
+        "times_caption": "10 belts · 10 questions per round",
+        "choose_times": "Choose Times Tables Dojo",
         "back": "← Back",
         "choose_skill": "Choose the skill you're working on:",
         "session_info": "You'll do **{n} questions** and we'll time how long it takes.",
@@ -87,6 +91,10 @@ UI = {
         "algebra_desc": "Sgilean ailseabra airson Ìre Nàiseanta 5, le eisimpleirean obraichte.",
         "algebra_caption": "30 sgilean · eisimpleirean obraichte agus cleachdadh",
         "choose_algebra": "Tagh Algebra Dojo",
+        "times_title": "✖️ Times Tables Dojo",
+        "times_desc": "Coisinn na criosan agad, bhon chrios gheal gu maighstir.",
+        "times_caption": "10 criosan · 10 ceistean gach cuairt",
+        "choose_times": "Tagh Times Tables Dojo",
         "back": "← Air ais",
         "choose_skill": "Tagh an sgil air a bheil thu ag obair:",
         "session_info": "Nì thu **{n} ceistean** agus cuiridh sinn ùine ris.",
@@ -330,7 +338,7 @@ def render_landing():
     banner()
     language_toggle()
     st.markdown(f'<div class="app-sub">{tr("subtitle")}</div>', unsafe_allow_html=True)
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
     with col1:
         st.markdown(f"### {tr('key_skills_title')}")
         st.write(tr("key_skills_desc"))
@@ -347,7 +355,15 @@ def render_landing():
             st.session_state.category = "mental_strategies"
             go("skill_select")
             st.rerun()
+    col3, col4 = st.columns(2)
     with col3:
+        st.markdown(f"### {tr('times_title')}")
+        st.write(tr("times_desc"))
+        st.caption(tr("times_caption"))
+        if st.button(tr("choose_times"), use_container_width=True, type="primary"):
+            go("times")
+            st.rerun()
+    with col4:
         st.markdown(f"### {tr('algebra_title')}")
         st.write(tr("algebra_desc"))
         st.caption(tr("algebra_caption"))
@@ -364,6 +380,7 @@ def render_landing():
 
 
 ALGEBRA_PAGE = Path(__file__).parent / "pages_static" / "algebra_dojo.html"
+TIMES_PAGE = Path(__file__).parent / "pages_static" / "times_tables_dojo.html"
 
 
 def render_algebra():
@@ -372,6 +389,14 @@ def render_algebra():
         go("landing")
         st.rerun()
     components.html(ALGEBRA_PAGE.read_text(encoding="utf-8"), height=1500, scrolling=True)
+
+
+def render_times():
+    # The Times Tables Dojo page is a self-contained HTML file, shown in an iframe.
+    if st.button(tr("back")):
+        go("landing")
+        st.rerun()
+    components.html(TIMES_PAGE.read_text(encoding="utf-8"), height=1100, scrolling=True)
 
 
 def render_skill_select():
@@ -557,9 +582,14 @@ if "results" in st.query_params and not st.session_state.get("results_link_used"
 if "algebra" in st.query_params and not st.session_state.get("algebra_link_used"):
     st.session_state.algebra_link_used = True
     st.session_state.stage = "algebra"
+# A direct link (…?times) opens the Times Tables Dojo practice page.
+if "times" in st.query_params and not st.session_state.get("times_link_used"):
+    st.session_state.times_link_used = True
+    st.session_state.stage = "times"
 STAGE_RENDERERS = {
     "landing": render_landing,
     "algebra": render_algebra,
+    "times": render_times,
     "skill_select": render_skill_select,
     "settings": render_settings,
     "quiz": render_quiz,
